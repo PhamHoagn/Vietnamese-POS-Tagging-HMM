@@ -108,3 +108,48 @@ def test_oov_empty_train_and_empty_split(tmp_path: Path) -> None:
     assert float(test["oov_rate"]) == 1
     assert float(test["f_train_le_2_rate"]) == 1
     assert float(test["seen_rare_le_2_rate"]) == 0
+
+
+def test_audit_duplicates_and_issues(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """Trùng dựa trên tuple token, bỏ qua tag/ID; mọi cặp và lỗi đều được báo."""
+    from src.eda import audit_splits
+
+    splits = {
+        "train": [Sentence("same", ["sinh viên"], ["NOUN"]),
+                  Sentence("same", ["sinh viên"], ["VERB"]),
+                  Sentence(None, ["sinh", "viên"], ["NOUN", "NOUN"]),
+                  Sentence(None, [], [])],
+        "dev": [Sentence(None, ["sinh viên"], ["_"])],
+        "test": [Sentence(None, ["sinh viên"], ["NN"]), Sentence(None, [], [])],
+    }
+    before = deepcopy(splits)
+    path = audit_splits(splits, tmp_path)
+    with path.open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    within = [r for r in rows if r["issue"] == "duplicate_within"]
+    assert len(within) == 1
+    assert (within[0]["sentence_index_a"], within[0]["sentence_index_b"]) == ("0", "1")
+    cross = [r for r in rows if r["issue"] == "duplicate_cross"]
+    assert len([r for r in cross if (r["split_a"], r["split_b"]) == ("train", "dev")]) == 2
+    assert len([r for r in cross if (r["split_a"], r["split_b"]) == ("train", "test")]) == 3
+    assert len([r for r in cross if (r["split_a"], r["split_b"]) == ("dev", "test")]) == 1
+    assert len([r for r in rows if r["issue"] == "empty_sentence"]) == 2
+    invalid = [r for r in rows if r["issue"] == "unknown_tag"]
+    assert {r["tag"] for r in invalid} == {"_", "NN"}
+    assert all(r["token_index"] == "0" for r in invalid)
+    assert splits == before
+    summary = capsys.readouterr().out
+    assert "train ∩ test: 3 cặp" in summary
+    assert "train: 1 cặp" in summary
+
+
+def test_audit_no_issues(tmp_path: Path) -> None:
+    """Không có lỗi vẫn xuất CSV có header để công cụ đọc nhất quán."""
+    from src.eda import audit_splits
+
+    path = audit_splits({"train": [Sentence(None, ["x"], ["NOUN"])],
+                         "dev": [], "test": []}, tmp_path)
+    with path.open(encoding="utf-8", newline="") as stream:
+        reader = csv.DictReader(stream)
+        assert "issue" in reader.fieldnames
+        assert list(reader) == []

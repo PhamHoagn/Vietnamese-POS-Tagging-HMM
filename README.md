@@ -117,3 +117,26 @@ Các cột `*_rate` là tỷ lệ 0–1; nhóm không có token để trống ra
 Tần suất đếm theo FORM chính xác (phân biệt hoa thường), chỉ lấy từ train đã parse,
 trước mọi cutoff/UNK mapping; không cập nhật bằng dev/test. Với mỗi ngưỡng k:
 `f_train_le_k_count = oov_count + seen_rare_le_k_count`.
+
+### Audit câu trùng, câu rỗng và nhãn lạ
+
+```python
+from src.eda import audit_splits
+
+path = audit_splits(splits)  # ghi results/tables/duplicates.csv và in tóm tắt
+```
+
+Hàm chỉ báo cáo trên ba split đã parse, không sửa/xóa câu, nhãn hay đổi split.
+Gọi riêng trước `export_eda` nếu cần báo nhãn lạ (EDA từ chối nhãn không hợp lệ).
+So trùng bằng tuple token chính xác, không ghép bằng dấu cách, không chuẩn hóa,
+không xét sent_id hoặc tags. CSV ghi từng cặp vị trí trùng nội bộ/liên split
+(train–dev, train–test, dev–test), từng câu rỗng và từng vị trí nhãn lạ.
+Chỉ số câu/token bắt đầu từ 0; `tokens_json` giữ ranh giới token.
+Tóm tắt đếm **cặp câu** (n bản giống nhau tạo n*(n-1)/2 cặp nội bộ), không phải
+số nhóm trùng. Hai câu rỗng cũng khớp chuỗi token rỗng và được báo trùng.
+Không có lỗi thì CSV chỉ có header.
+
+Audit chỉ thấy đối tượng đầu vào: parser hiện bỏ câu rỗng và từ chối nhãn lạ,
+nên không thể phục hồi các lỗi đã bị loại trước đó. Test kiểm tra hai trường hợp
+này bằng Sentence toy. Chỉ chạy audit có test thật sau khi khóa cấu hình;
+không dùng báo cáo để tự ý thay split hoặc điều chỉnh mô hình theo test.
