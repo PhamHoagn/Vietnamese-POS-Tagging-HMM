@@ -63,3 +63,48 @@ def test_invalid_input_writes_nothing(tmp_path: Path, problem: str) -> None:
     with pytest.raises(ValueError):
         export_eda(splits, output)
     assert not output.exists()
+
+
+def test_oov_uses_original_train_frequencies(tmp_path: Path) -> None:
+    """OOV có f=0; rare đã thấy có f=1/2; lặp từ ở dev không thay tần suất train."""
+    splits = {
+        "train": [Sentence(None, ["a", "b", "b", "c", "c", "c"], ["NOUN"] * 6)],
+        "dev": [Sentence(None, ["a", "b", "c", "x", "x"],
+                         ["NOUN", "VERB", "VERB", "NOUN", "NOUN"])],
+        "test": [Sentence(None, ["x", "a", "A"], ["NOUN", "NOUN", "PROPN"])],
+    }
+    original = deepcopy(splits)
+    paths = export_eda(splits, tmp_path)
+    with paths["oov_stats"].open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert len(rows) == 36
+    assert [r["upos"] for r in rows[:18]] == ["ALL", *UPOS_TAGS]
+    indexed = {(r["split"], r["upos"]): r for r in rows}
+    overall = indexed["dev", "ALL"]
+    for metric, count in (("oov", 2), ("f_train_le_1", 3), ("f_train_le_2", 4),
+                          ("seen_rare_le_1", 1), ("seen_rare_le_2", 2)):
+        assert int(overall[f"{metric}_count"]) == count
+        assert float(overall[f"{metric}_rate"]) == pytest.approx(count / 5)
+    assert float(indexed["dev", "NOUN"]["oov_rate"]) == pytest.approx(2 / 3)
+    assert float(indexed["dev", "VERB"]["oov_rate"]) == 0
+    assert indexed["dev", "ADJ"]["oov_rate"] == ""
+    assert int(indexed["test", "ALL"]["oov_count"]) == 2
+    assert splits == original
+    for row in rows:
+        for cutoff in (1, 2):
+            assert int(row[f"f_train_le_{cutoff}_count"]) == (
+                int(row["oov_count"]) + int(row[f"seen_rare_le_{cutoff}_count"])
+            )
+
+
+def test_oov_empty_train_and_empty_split(tmp_path: Path) -> None:
+    """Train rỗng khiến mọi token OOV; nhóm không có token có rate không xác định."""
+    paths = export_eda({"train": [], "dev": [],
+                        "test": [Sentence(None, ["x"], ["NOUN"])]}, tmp_path)
+    with paths["oov_stats"].open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert all(row["oov_rate"] == "" for row in rows if row["split"] == "dev")
+    test = next(row for row in rows if row["split"] == "test" and row["upos"] == "ALL")
+    assert float(test["oov_rate"]) == 1
+    assert float(test["f_train_le_2_rate"]) == 1
+    assert float(test["seen_rare_le_2_rate"]) == 0

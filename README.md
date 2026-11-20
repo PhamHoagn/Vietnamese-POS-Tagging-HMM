@@ -100,3 +100,20 @@ Kiểm thử chỉ dùng dữ liệu toy và xuất CSV vào thư mục tạm:
 ```bash
 python -m pytest scripts/test_eda.py -q
 ```
+
+### OOV và rare-token
+
+`export_eda(splits)` xuất thêm `results/tables/oov_stats.csv` cho dev và test.
+Mỗi split có dòng `upos=ALL` và 17 dòng UPOS đúng thứ tự. `token_count` là
+mẫu số của chính dòng đó (toàn split hoặc các token có gold UPOS tương ứng).
+Các cột `*_rate` là tỷ lệ 0–1; nhóm không có token để trống rate.
+
+- `oov_count/rate`: FORM chưa xuất hiện trong train nguyên gốc, tức `f_train=0`.
+- `f_train_le_1_count/rate`, `f_train_le_2_count/rate`: token có tần suất train
+  ≤1 hoặc ≤2, **bao gồm OOV**, vì tần suất của OOV bằng 0.
+- `seen_rare_le_1_count/rate`, `seen_rare_le_2_count/rate`: token đã thấy trong
+  train với `1 ≤ f_train ≤ k`. **Rare-token KHÔNG phải OOV**; hai nhóm này tách biệt.
+
+Tần suất đếm theo FORM chính xác (phân biệt hoa thường), chỉ lấy từ train đã parse,
+trước mọi cutoff/UNK mapping; không cập nhật bằng dev/test. Với mỗi ngưỡng k:
+`f_train_le_k_count = oov_count + seen_rare_le_k_count`.

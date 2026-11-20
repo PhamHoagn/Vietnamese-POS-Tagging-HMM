@@ -14,7 +14,7 @@ def export_eda(
     splits: Mapping[str, Sequence[Sentence]],
     output_dir: str | Path = "results/tables",
 ) -> dict[str, Path]:
-    """Xuất hai CSV; chỉ truyền test thật sau khi đã khóa cấu hình."""
+    """Xuất ba CSV; chỉ truyền test thật sau khi đã khóa cấu hình."""
     split_order = ("train", "dev", "test")
     if set(splits) != set(split_order):
         raise ValueError("Đầu vào phải có đúng ba split train/dev/test.")
@@ -55,12 +55,37 @@ def export_eda(
                 "percentage": 100.0 * counts[tag] / token_count if token_count else None,
             })
 
+    # Đếm FORM nguyên gốc chỉ từ train, không cutoff hay cập nhật từ dev/test.
+    train_counts = Counter(token for sentence in splits["train"] for token in sentence.tokens)
+    oov_rows: list[dict[str, object]] = []
+    for split in ("dev", "test"):
+        groups: dict[str, Counter[str]] = {tag: Counter() for tag in ("ALL", *UPOS_TAGS)}
+        for sentence in splits[split]:
+            for token, tag in zip(sentence.tokens, sentence.tags):
+                frequency = train_counts[token]
+                for group in (groups["ALL"], groups[tag]):
+                    group["token"] += 1
+                    group["oov"] += frequency == 0
+                    for cutoff in (1, 2):
+                        group[f"f_train_le_{cutoff}"] += frequency <= cutoff
+                        group[f"seen_rare_le_{cutoff}"] += 1 <= frequency <= cutoff
+        for tag, counts in groups.items():
+            total = counts["token"]
+            row: dict[str, object] = {"split": split, "upos": tag, "token_count": total}
+            for metric in ("oov", "f_train_le_1", "f_train_le_2",
+                           "seen_rare_le_1", "seen_rare_le_2"):
+                row[f"{metric}_count"] = counts[metric]
+                row[f"{metric}_rate"] = counts[metric] / total if total else None
+            oov_rows.append(row)
+
     # Chỉ tạo file sau khi cả ba split đều qua kiểm tra.
     directory = Path(output_dir)
     directory.mkdir(parents=True, exist_ok=True)
     paths = {"eda": directory / "eda.csv",
-             "upos_distribution": directory / "upos_distribution.csv"}
-    for key, rows in (("eda", summaries), ("upos_distribution", distributions)):
+             "upos_distribution": directory / "upos_distribution.csv",
+             "oov_stats": directory / "oov_stats.csv"}
+    for key, rows in (("eda", summaries), ("upos_distribution", distributions),
+                      ("oov_stats", oov_rows)):
         with paths[key].open("w", encoding="utf-8", newline="") as stream:
             writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
             writer.writeheader()
