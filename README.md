@@ -163,3 +163,20 @@ Ba PNG riêng, 200 dpi, nhãn tiếng Việt:
 
 Ô tỷ lệ trống hiện N/A, không thay bằng 0. Test toy xuất ảnh vào thư mục tạm:
 `python -m pytest scripts/test_eda.py scripts/test_make_figures.py -q`.
+
+### Sinh báo cáo audit từ metadata và EDA
+
+```bash
+python scripts/make_audit.py
+# Tùy chọn: --manifest data/raw/MANIFEST.json --eda results/tables/eda.csv --output data_audit.md
+python -m pytest scripts/test_make_audit.py -q
+```
+
+Báo cáo chép URL/ref/commit/SHA-256 và metadata sẵn có từ manifest, số câu/token
+đã đo từ EDA; so số câu với mốc kế hoạch train/dev/test = 1400/1123/800.
+Chênh lệch có dấu và nhãn CHÊNH LỆCH, không tự sửa split. Thiếu metadata ghi
+`[KHÔNG CÓ TRONG DỮ LIỆU]`; giấy phép luôn để
+`[ĐIỀN THỦ CÔNG sau khi đọc README repo]` để nhóm xác nhận nguồn.
+Script không xác minh hash hay chứng minh hai file đầu vào cùng phiên bản corpus.
+Không có đầu vào thật thì không sinh báo cáo thật. Chạy lại sẽ ghi đè báo cáo cũ,
+nên giữ riêng phần bổ sung thủ công trước khi tái sinh.
