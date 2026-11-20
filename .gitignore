@@ -208,6 +208,10 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# Raw corpora need a separate license/distribution review before tracking.
+/data/raw/*
+!/data/raw/.gitkeep
+
 # Ruff stuff:
 .ruff_cache/
 

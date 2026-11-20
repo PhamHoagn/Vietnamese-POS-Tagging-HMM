@@ -1,0 +1,21 @@
+# Synthetic fixture authored for this project; not an experimental dataset.
+# sent_id = toy-train-1
+# text = Tôi yêu Hà Nội .
+1	Tôi	_	PRON	_	_	2	nsubj	_	_
+2	yêu	_	VERB	_	_	0	root	_	_
+3-4	Hà_Nội	_	_	_	_	_	_	_	_
+3	Hà	_	PROPN	_	_	2	obj	_	_
+3.1	ẩn	_	X	_	_	_	_	2:obj	_
+4	Nội	_	PROPN	_	_	3	flat	_	_
+5	.	_	PUNCT	_	_	2	punct	_	_
+
+# sent_id = toy-train-2
+# FORM below intentionally contains an internal space.
+1	Hà Nội	_	PROPN	_	_	2	nsubj	_	_
+2	đẹp	_	ADJ	_	_	0	root	_	_
+3	.	_	PUNCT	_	_	2	punct	_	_
+
+# sent_id = toy-dev-1
+1	Tôi	_	PRON	_	_	2	nsubj	_	_
+2	học	_	VERB	_	_	0	root	_	_
+3	.	_	PUNCT	_	_	2	punct	_	_
