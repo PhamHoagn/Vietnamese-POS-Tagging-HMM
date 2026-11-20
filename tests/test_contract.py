@@ -19,7 +19,7 @@ def test_shared_model_signatures(tagger_class):
     assert list(inspect.signature(model.predict).parameters) == ["tokens"]
 
 
-@pytest.mark.parametrize("tagger_class", [BigramHMMTagger, TrigramHMMTagger])
+@pytest.mark.parametrize("tagger_class", [TrigramHMMTagger])
 def test_hmm_placeholders_never_claim_training_or_predictions(tagger_class):
     model = tagger_class(alpha=0.1, cutoff=1)
     assert model.alpha == 0.1

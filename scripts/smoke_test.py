@@ -40,7 +40,7 @@ def main() -> None:
     print("PASS: synthetic fixture -> train/dev -> baseline -> evaluate_pos")
     print("Toy integration values only; not experimental results:")
     print(json.dumps(result, indent=2))
-    print("PASS: Bigram/Trigram imports and interfaces; algorithms remain unimplemented.")
+    print("PASS: Bigram/Trigram imports and interfaces checked; no HMM decoding in this smoke test.")
 
 
 if __name__ == "__main__":

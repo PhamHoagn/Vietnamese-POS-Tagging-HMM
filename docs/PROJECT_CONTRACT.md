@@ -19,7 +19,8 @@ src/
   contracts.py          # kiểu dữ liệu, Protocol, UPOS, validation chung
   data_loader.py        # parser
   baseline.py           # MostFrequentTagger
-  hmm_bigram.py         # placeholder
+  hmm_common.py         # counts train-only, UNK và cache của TV2
+  hmm_bigram.py         # Bigram HMM + Viterbi đã triển khai
   hmm_trigram.py        # placeholder
   metrics.py            # 2 metric hoàn chỉnh, 3 metric dự phòng
   model_selection.py    # interface grid search, placeholder
@@ -28,6 +29,8 @@ tests/
   test_baseline.py
   test_metrics.py
   test_contract.py
+  test_hmm_bigram.py    # TV2 tự kiểm tra; không thay oracle độc lập của TV1
+  toy_corpus.py         # dữ liệu và xác suất kỳ vọng tính tay
   fixtures/tiny.conllu
 scripts/
   __init__.py
@@ -109,9 +112,14 @@ nhận tag phổ biến nhất toàn train. Cả hai mức hòa count đều dù
 `train_vocab_: frozenset[str]` là tập FORM nguyên gốc của train. Refit thất bại
 không làm mất model cũ.
 
-**Ngoại lệ placeholder hiện tại:** hai HMM chỉ kiểm tra constructor; mọi lời gọi
+Bigram đã triển khai interface trên và chỉ giải mã trong tập nhãn UPOS có ở train.
+API bổ sung của TV2, cấu hình/cache và quy ước câu rỗng nằm trong
+[TV2_BIGRAM.md](TV2_BIGRAM.md). `BigramHMMTagger.predict([])` vẫn trả `[]`;
+lớp `BigramHMM` mới từ chối câu rỗng. Không thay parser hoặc kiểu Corpus hiện có.
+
+**Ngoại lệ placeholder hiện tại:** Trigram chỉ kiểm tra constructor; mọi lời gọi
 `fit`/`predict`, kể cả câu rỗng/chưa fit, đều gây `NotImplementedError` rõ ràng.
-Chưa có vocabulary hoặc xác suất HMM được học; không được coi là model đã fit.
+Chưa có vocabulary hoặc xác suất Trigram được học; không được coi là model đã fit.
 Khi TV2 triển khai, thay test placeholder bằng test thuật toán và giữ contract.
 
 ### `src.metrics`
@@ -202,7 +210,9 @@ khai trước khi đưa vào pipeline.
 
 ## 7. Start/end-state và xác suất HMM (quy ước cho TV2)
 
-Chỉ 17 UPOS có emission. BOS/EOS là state biên, không thuộc labels đầu ra.
+Với HMM, S là các UPOS thực sự xuất hiện trong train, sắp theo tên tăng dần;
+chỉ S có emission và được giải mã. 17 UPOS vẫn là tagset hợp lệ và labels cố định
+của evaluation hiện tại. BOS/EOS là state biên, không thuộc labels đầu ra.
 Mỗi câu reset riêng; không đếm chuyển tiếp xuyên qua hai câu.
 
 Bigram thêm một BOS trước câu, một EOS sau câu; tính các chuyển tiếp
@@ -212,12 +222,13 @@ tính `P(t_i | t_(i-2), t_(i-1))` từ context `(BOS, BOS)`, và cuối cùng
 `P(EOS | t_(n-1), t_n)`; câu một token kết thúc bằng context `(BOS, t1)`.
 Không phát xạ từ BOS/EOS, không chuyển tới BOS hoặc chuyển ra EOS.
 
-Chuẩn hóa Add-alpha transition trên tập đích `UPOS_TAGS + EOS`, emission trên
+Chuẩn hóa Add-alpha transition trên tập đích `S + EOS`, emission trên
 vocabulary phát xạ gồm UNK, theo count của context/tag tương ứng. Context chưa
 thấy vẫn có phân phối nhờ alpha. Câu rỗng bị bỏ khi train, predict trả `[]`.
 TV2 dùng log tự nhiên và float64 để tránh underflow; hòa điểm chọn đường đi có
 chuỗi tag nhỏ nhất theo thứ tự từ điển. TV1 kiểm chứng trên toy model bằng vét cạn
-độc lập, đặc biệt câu một token và điểm kết thúc. Chưa có phần tính này trong code.
+độc lập, đặc biệt câu một token và điểm kết thúc. Bigram đã có code và self-check
+của TV2; Trigram chưa triển khai và oracle nghiệm thu độc lập của TV1 chưa có.
 
 ## 8. Chống leakage và tái lập
 
@@ -238,7 +249,7 @@ chuỗi tag nhỏ nhất theo thứ tự từ điển. TV1 kiểm chứng trên 
 | Thành viên | File/khu vực phụ trách |
 | --- | --- |
 | TV1 @angqun | `src/data_loader.py`, `src/baseline.py`, `tests/test_data_loader.py`, `tests/test_baseline.py`, `tests/fixtures/`, notebook EDA, test vét cạn HMM độc lập sau này |
-| TV2 @PhamHoagn | `src/hmm_bigram.py`, `src/hmm_trigram.py`, notebook mô hình; test thuật toán HMM phối hợp TV1 |
+| TV2 @PhamHoagn | `src/hmm_common.py`, `src/hmm_bigram.py`, `src/hmm_trigram.py`, `tests/test_hmm_bigram.py`, `tests/toy_corpus.py`, `docs/TV2_BIGRAM.md`, notebook mô hình; test thuật toán HMM phối hợp TV1 |
 | TV3 @PhuongNamkk5 | `src/metrics.py`, `src/model_selection.py`, `tests/test_metrics.py`, `docs/pre_register_test.md`, `results/`, `report/`, bootstrap CI sau này |
 | Cả nhóm, một người tích hợp mỗi lần | `src/contracts.py`, `tests/test_contract.py`, `scripts/`, `requirements.txt`, `.gitignore`, `README.md`, `docs/PROJECT_CONTRACT.md` |
 
@@ -280,12 +291,13 @@ Chỉ cần CPU; chưa xác minh bằng một runtime Colab thật trong bước
 | Most Frequent Tag, fallback, tie-break | Hoàn chỉnh |
 | Token Accuracy, fixed-label Macro-F1 | Hoàn chỉnh |
 | OOV Accuracy/Rate, accuracy_no_punct | Chưa làm; trả `None` |
-| Bigram/Trigram training, Viterbi, NumPy optimization | Chưa làm; `NotImplementedError` |
+| Bigram training, Viterbi NumPy, UNK, log_joint, config/cache | Đã triển khai; xem TV2_BIGRAM.md |
+| Trigram training, Viterbi và benchmark | Chưa làm; `NotImplementedError` |
 | Grid search | Chỉ signature/tài liệu; `NotImplementedError` |
 | Bootstrap CI, EDA, corpus thật, thực nghiệm, báo cáo | Chưa làm |
 | Unit test và smoke test | Đã chạy thành công trên Windows local, xem bên dưới |
 
-### Kiểm chứng local ngày 2026-11-20
+### Kiểm chứng khung ban đầu ngày 2026-11-20
 
 - Python 3.14.7, NumPy 2.5.5, scikit-learn 1.9.1, pytest 9.2.0, trong `.venv`.
 - Cài `requirements.txt`: thành công. Lần đầu sandbox không kết nối được PyPI;
