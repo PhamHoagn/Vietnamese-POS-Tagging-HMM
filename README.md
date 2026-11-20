@@ -42,3 +42,35 @@ train/dev; số in ra dùng để kiểm tra kết nối, không phải kết qu
 
 Không đưa corpus gốc vào Git trước khi xác nhận giấy phép. Thư mục `data/raw/`
 được ignore, ngoại trừ `.gitkeep`.
+
+## Đọc CoNLL-U (TV1)
+
+```python
+from src.data_loader import read_conllu, load_splits
+
+train = read_conllu("data/raw/TEN_FILE_TRAIN.conllu", nfc=False)
+# train[0].sent_id, train[0].tokens, train[0].tags
+# Chỉ sau khi khóa cấu hình test:
+# splits = load_splits("data/raw")
+```
+
+`load_splits` đọc tên ba file từ `MANIFEST.json` do script tải dữ liệu tạo,
+trả các khóa `train`, `dev`, `test`. Hàm này không xác minh hash; chạy
+`python scripts/download_data.py --verify` trước khi sử dụng dữ liệu.
+Trước khi khóa cấu hình, chỉ gọi `read_conllu` riêng cho train/dev.
+`nfc=True` chuẩn hóa Unicode NFC của FORM; mặc định giữ nguyên văn bản.
+ID câu lấy từ comment `# sent_id = ...`, hoặc `None` nếu không có.
+`load_conllu` vẫn trả tuple `(tokens, tags)` tương thích với API hiện có;
+`Sentence` dataclass mới nằm trong `src.data_loader`, không thay kiểu tuple
+trong `src.contracts`.
+
+Không dùng `split()` không tham số vì nó tách cả khoảng trắng trong FORM
+(ví dụ `Hà Nội`), làm lệch token và nhãn. CoNLL-U có 10 cột phân cách bằng tab,
+FORM ở cột 2 và UPOS ở cột 4; hàm `read_conll_2columns()` dành cho dữ liệu
+hai cột không thể dùng trực tiếp. Cần bỏ comment, multi-word token và empty node.
+
+Kiểm thử bằng dữ liệu toy (không mở test corpus):
+
+```bash
+python -m pytest tests/test_data_loader.py tests/test_baseline.py tests/test_contract.py -q
+```
