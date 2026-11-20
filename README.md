@@ -74,3 +74,29 @@ Kiểm thử bằng dữ liệu toy (không mở test corpus):
 ```bash
 python -m pytest tests/test_data_loader.py tests/test_baseline.py tests/test_contract.py -q
 ```
+
+## Thống kê EDA (TV1)
+
+Sau khi đã khóa cấu hình và được phép đọc test, truyền ba split đã parse:
+
+```python
+from src.eda import export_eda
+
+paths = export_eda(splits)  # dict train/dev/test, mỗi giá trị là list[Sentence]
+```
+
+Hàm ghi `results/tables/eda.csv` và `results/tables/upos_distribution.csv`.
+Có thể truyền `output_dir` để đổi thư mục xuất. Mỗi lần chạy ghi lại hai bảng.
+EDA tính số câu/token, min/mean/median/max độ dài (bao gồm PUNCT), số FORM
+phân biệt chính xác theo chuỗi đầu vào và số token có gold tag PUNCT.
+Phân bố nhãn có đủ 17 UPOS theo thứ tự cố định cho từng split;
+`percentage = 100 * count / token_count` của chính split đó, nhãn vắng có count 0.
+Split không có câu để trống các thống kê độ dài; split không có token để trống
+percentage vì không có mẫu số. Số đếm vẫn bằng 0. Không học vocab dùng cho mô hình,
+không thay đổi đầu vào, không tự chuẩn hóa và không dùng thống kê test để tuning.
+
+Kiểm thử chỉ dùng dữ liệu toy và xuất CSV vào thư mục tạm:
+
+```bash
+python -m pytest scripts/test_eda.py -q
+```
