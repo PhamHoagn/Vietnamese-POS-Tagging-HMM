@@ -140,3 +140,26 @@ Audit chỉ thấy đối tượng đầu vào: parser hiện bỏ câu rỗng v
 nên không thể phục hồi các lỗi đã bị loại trước đó. Test kiểm tra hai trường hợp
 này bằng Sentence toy. Chỉ chạy audit có test thật sau khi khóa cấu hình;
 không dùng báo cáo để tự ý thay split hoặc điều chỉnh mô hình theo test.
+
+### Vẽ biểu đồ từ CSV
+
+Cài dependencies và chạy từ repo root:
+
+```bash
+python -m pip install -r requirements.txt
+python scripts/make_figures.py
+# Hoặc: python -m scripts.make_figures --tables-dir results/tables --output-dir results/figures
+```
+
+Chạy lại `export_eda(splits)` khi được phép dùng test thật để có thêm
+`sentence_lengths.csv` (`split,length,count`). Min/mean/median/max trong `eda.csv`
+không đủ để dựng histogram. Bảng mới lưu tần số câu theo từng độ dài, không lưu nội dung câu.
+Script vẽ chỉ đọc CSV, không parse corpus hay tính lại OOV; không cần seaborn.
+
+Ba PNG riêng, 200 dpi, nhãn tiếng Việt:
+- `sentence_lengths.png`: histogram có khoảng rộng 1 token, ba split chồng màu.
+- `upos_distribution.png`: phần trăm UPOS theo train/dev/test từ `percentage`.
+- `oov_by_upos.png`: OOV theo UPOS của dev/test, đổi `oov_rate` từ 0–1 sang %.
+
+Ô tỷ lệ trống hiện N/A, không thay bằng 0. Test toy xuất ảnh vào thư mục tạm:
+`python -m pytest scripts/test_eda.py scripts/test_make_figures.py -q`.

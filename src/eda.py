@@ -83,13 +83,14 @@ def export_eda(
     splits: Mapping[str, Sequence[Sentence]],
     output_dir: str | Path = "results/tables",
 ) -> dict[str, Path]:
-    """Xuất ba CSV; chỉ truyền test thật sau khi đã khóa cấu hình."""
+    """Xuất bốn CSV; chỉ truyền test thật sau khi đã khóa cấu hình."""
     split_order = ("train", "dev", "test")
     if set(splits) != set(split_order):
         raise ValueError("Đầu vào phải có đúng ba split train/dev/test.")
 
     summaries: list[dict[str, object]] = []
     distributions: list[dict[str, object]] = []
+    length_rows: list[dict[str, object]] = []
     for split in split_order:
         lengths: list[int] = []
         types: set[str] = set()
@@ -107,6 +108,8 @@ def export_eda(
             types.update(sentence.tokens)
             counts.update(sentence.tags)
         token_count = sum(lengths)
+        for length, count in sorted(Counter(lengths).items()):
+            length_rows.append({"split": split, "length": length, "count": count})
         summaries.append({
             "split": split,
             "sentence_count": len(lengths),
@@ -152,11 +155,13 @@ def export_eda(
     directory.mkdir(parents=True, exist_ok=True)
     paths = {"eda": directory / "eda.csv",
              "upos_distribution": directory / "upos_distribution.csv",
-             "oov_stats": directory / "oov_stats.csv"}
+             "oov_stats": directory / "oov_stats.csv",
+             "sentence_lengths": directory / "sentence_lengths.csv"}
     for key, rows in (("eda", summaries), ("upos_distribution", distributions),
-                      ("oov_stats", oov_rows)):
+                      ("oov_stats", oov_rows), ("sentence_lengths", length_rows)):
         with paths[key].open("w", encoding="utf-8", newline="") as stream:
-            writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+            fields = ["split", "length", "count"] if key == "sentence_lengths" else list(rows[0])
+            writer = csv.DictWriter(stream, fieldnames=fields)
             writer.writeheader()
             writer.writerows(rows)
     return paths
