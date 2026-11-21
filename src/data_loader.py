@@ -19,7 +19,8 @@ class Sentence:
 
     def __post_init__(self) -> None:
         """Kiểm tra căn chỉnh token và nhãn."""
-        assert len(self.tokens) == len(self.tags), "Số token và nhãn phải bằng nhau."
+        if len(self.tokens) != len(self.tags):
+            raise ValueError("Số token và nhãn phải bằng nhau.")
 
 
 def read_conllu(path: str | Path, nfc: bool = False) -> list[Sentence]:
@@ -42,12 +43,15 @@ def read_conllu(path: str | Path, nfc: bool = False) -> list[Sentence]:
                     sent_id = match.group(1).strip() or None
                 continue
             fields = row.split("\t")
-            if "-" in fields[0] or "." in fields[0]:
-                continue
             if len(fields) != 10:
                 raise ValueError(f"{path}:{line_number}: cần 10 cột phân cách bằng tab.")
             token_id, form, _, upos, *_ = fields
-            if not re.fullmatch(r"[1-9]\d*", token_id):
+            token_range = re.fullmatch(r"([1-9][0-9]*)-([1-9][0-9]*)", token_id)
+            if token_range and int(token_range[1]) < int(token_range[2]):
+                continue
+            if re.fullmatch(r"(?:0|[1-9][0-9]*)\.[1-9][0-9]*", token_id):
+                continue
+            if not re.fullmatch(r"[1-9][0-9]*", token_id):
                 raise ValueError(f"{path}:{line_number}: ID token không hợp lệ {token_id!r}.")
             if not form:
                 raise ValueError(f"{path}:{line_number}: FORM không được rỗng.")

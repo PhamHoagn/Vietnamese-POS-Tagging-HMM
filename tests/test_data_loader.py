@@ -67,7 +67,7 @@ def test_sentence_ids_and_nfc(tmp_path: Path) -> None:
     assert sentences[0] == Sentence("first", [form], ["PROPN"])
     assert sentences[1].sent_id is None
     assert read_conllu(path, nfc=True)[0].tokens == ["Hà Nội"]
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError, match="Số token"):
         Sentence(None, ["x"], [])
 
 
@@ -189,3 +189,50 @@ def test_nfc_preserves_token_count() -> None:
         assert len(before.tokens) == len(after.tokens)
         assert before.tags == after.tags
         assert before.sent_id == after.sent_id
+
+
+@pytest.mark.parametrize("token_id", ["bad-id", "abc.def", "2-1", "1-1", "0-2", "01-2", "3.0", "3.01", "1--2", "1.2.3"])
+def test_invalid_special_id_is_not_silently_skipped(tmp_path: Path, token_id: str) -> None:
+    """Chứa dấu '-' hoặc '.' chưa đủ để là range/empty node hợp lệ."""
+    path = tmp_path / "bad-id.conllu"
+    path.write_text(f"# toy\n{token_id}\tx\t_\tNOUN\t_\t_\t0\troot\t_\t_", encoding="utf-8")
+    with pytest.raises(ValueError, match=r":2: ID token"):
+        read_conllu(path)
+
+
+@pytest.mark.parametrize("row", ["1-2", "3.1\tx\t_", "1-2\tx\t_\t_\t_\t_\t_\t_\t_\t_\textra"])
+def test_special_id_requires_ten_columns(tmp_path: Path, row: str) -> None:
+    """Ngay cả dòng bị bỏ qua cũng phải có đủ đúng 10 cột để tránh che dữ liệu hỏng."""
+    path = tmp_path / "columns.conllu"
+    path.write_text(row, encoding="utf-8")
+    with pytest.raises(ValueError, match=r":1: cần 10 cột"):
+        read_conllu(path)
+
+
+@pytest.mark.parametrize("token_id", ["1-2", "3.1", "0.1"])
+def test_valid_special_ids_are_skipped(tmp_path: Path, token_id: str) -> None:
+    """Range tăng dần và empty node đúng mẫu không tạo token, kể cả node trước từ đầu."""
+    path = tmp_path / "special.conllu"
+    path.write_text(f"{token_id}\tx\t_\t_\t_\t_\t_\t_\t_\t_\n"
+                    "1\ty\t_\tNOUN\t_\t_\t0\troot\t_\t_", encoding="utf-8")
+    assert read_conllu(path)[0].tokens == ["y"]
+
+
+def test_sentence_alignment_under_python_optimized() -> None:
+    """Tiến trình python -O vẫn phải từ chối Sentence lệch token/nhãn bằng ValueError."""
+    import subprocess
+    import sys
+
+    code = (
+        "from src.data_loader import Sentence\n"
+        "try:\n"
+        "    Sentence(None, ['x'], [])\n"
+        "except ValueError:\n"
+        "    pass\n"
+        "else:\n"
+        "    raise SystemExit('alignment validation disabled')\n"
+    )
+    result = subprocess.run([sys.executable, "-O", "-c", code],
+                            cwd=Path(__file__).resolve().parents[1],
+                            capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
