@@ -47,3 +47,53 @@ def test_failed_refit_preserves_previous_model():
     with pytest.raises(ValueError):
         model.fit([])
     assert model.predict(["old"]) == ["NOUN"]
+
+
+def test_dataclass_ties_follow_all_upos() -> None:
+    """Mọi cặp nhãn hòa phải chọn nhãn đứng trước trong UPOS, bất kể thứ tự train."""
+    from src.baseline import MostFrequentTag
+    from src.data_loader import Sentence
+
+    for i, first in enumerate(UPOS_TAGS):
+        for second in UPOS_TAGS[i + 1:]:
+            model = MostFrequentTag().fit([Sentence(None, ["x", "x"], [second, first])])
+            assert model.predict(["x", "new"]) == [first, first]
+
+
+def test_export_predictions_preserves_model_and_original_vocab(tmp_path) -> None:
+    """Export giữ token có dấu cách, OOV theo train gốc và không học gold dev."""
+    import csv
+    from copy import deepcopy
+    from src.baseline import MostFrequentTag, export_predictions
+    from src.data_loader import Sentence
+
+    model = MostFrequentTag().fit([Sentence("t", ["sinh viên", "học", "học"], ["NOUN", "VERB", "VERB"])])
+    dev = [Sentence("d", ["sinh viên", "mới"], ["PROPN", "ADJ"])]
+    before = deepcopy(model.__dict__)
+    path = export_predictions(model, dev, model.train_vocab_, tmp_path / "pred.csv", split="dev")
+    with path.open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert rows == [
+        {"split": "dev", "sent_id": "d", "idx": "0", "token": "sinh viên", "gold": "PROPN", "pred": "NOUN", "is_oov": "False"},
+        {"split": "dev", "sent_id": "d", "idx": "1", "token": "mới", "gold": "ADJ", "pred": "VERB", "is_oov": "True"},
+    ]
+    assert model.__dict__ == before
+    with pytest.raises(ValueError, match="vocab_train"):
+        export_predictions(model, dev, {"học"}, tmp_path / "bad.csv")
+    assert not (tmp_path / "bad.csv").exists()
+
+
+def test_export_missing_metadata_and_empty_input(tmp_path) -> None:
+    """Không suy đoán split/sent_id; đầu vào rỗng vẫn ghi header."""
+    import csv
+    from src.baseline import MostFrequentTag, export_predictions
+    from src.data_loader import Sentence
+
+    model = MostFrequentTag().fit([Sentence(None, ["x"], ["NOUN"])])
+    path = export_predictions(model, [Sentence(None, ["x"], ["NOUN"])], model.train_vocab_, tmp_path / "p.csv")
+    with path.open(encoding="utf-8") as stream:
+        row = next(csv.DictReader(stream))
+    assert row["split"] == row["sent_id"] == ""
+    export_predictions(model, [], model.train_vocab_, path)
+    with path.open(encoding="utf-8") as stream:
+        assert list(csv.DictReader(stream)) == []

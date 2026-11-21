@@ -180,3 +180,23 @@ Chênh lệch có dấu và nhãn CHÊNH LỆCH, không tự sửa split. Thiế
 Script không xác minh hash hay chứng minh hai file đầu vào cùng phiên bản corpus.
 Không có đầu vào thật thì không sinh báo cáo thật. Chạy lại sẽ ghi đè báo cáo cũ,
 nên giữ riêng phần bổ sung thủ công trước khi tái sinh.
+
+### Baseline MostFrequentTag và xuất dự đoán
+
+```python
+from src.baseline import MostFrequentTag, export_predictions
+
+model = MostFrequentTag().fit(train)  # list[Sentence], chỉ dữ liệu train
+pred = model.predict(["sinh viên", "học"])
+export_predictions(model, dev, model.train_vocab_, "results/tables/baseline_dev.csv", split="dev")
+```
+
+Token đã thấy nhận nhãn nhiều nhất theo token; OOV nhận nhãn phổ biến nhất toàn
+train. Cả hai trường hợp hòa dùng thứ tự 17 UPOS cố định. Predict/export không
+cập nhật vocabulary. API cũ `MostFrequentTagger().fit(corpus_tuple)` được giữ qua adapter.
+CSV có `split,sent_id,idx,token,gold,pred,is_oov`; idx bắt đầu từ 0 trong mỗi câu,
+is_oov ghi True/False. Truyền `split` rõ ràng; nếu chỉ dùng bốn tham số gốc thì
+cột split để trống, không suy đoán. sent_id thiếu cũng để trống. vocab_train phải
+khớp tập FORM nguyên gốc model đã học, không dùng vocabulary sau cutoff.
+Chỉ xuất dự đoán test sau khi khóa cấu hình. Fit chỉ nhận dữ liệu train do người
+chạy cung cấp; tên split không thể được xác minh tự động từ nội dung Sentence.
