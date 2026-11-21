@@ -103,3 +103,29 @@ def get_emission_row(model: object, tag: str) -> dict[str, float]:
     với trạng thái model, tổng xác suất phải phản ánh đúng model đang dùng.
     """
     raise NotImplementedError("Chờ TV2 chốt API truy xuất emission.")
+
+
+def fit_train_model(
+    order: int,
+    train_sentences: Sequence[tuple[list[str], list[str]]],
+    *,
+    alpha: float,
+    cutoff: int,
+) -> object:
+    """Gọi fit TV2 trên corpus train toy; không tính counts/xác suất trong adapter.
+
+    Dùng cùng alpha cho transition/emission và cutoff giữ f_train>cutoff.
+    Model phải cung cấp mọi hàng chuyển kể cả chưa thấy (uniform sau Add-alpha),
+    hàng start Bigram có EOS, và vocabulary phát xạ gồm UNK. Truy xuất hàng
+    qua get_transition_row/get_emission_row; không dùng bảng kỳ vọng từ test.
+    """
+    if order == 1:
+        from src.hmm_bigram import BigramHMMTagger
+        model = BigramHMMTagger(alpha=alpha, cutoff=cutoff)
+    elif order == 2:
+        from src.hmm_trigram import TrigramHMMTagger
+        model = TrigramHMMTagger(alpha=alpha, cutoff=cutoff)
+    else:
+        raise ValueError('order phải là 1 hoặc 2.')
+    model.fit([(list(tokens), list(tags)) for tokens, tags in train_sentences])
+    return model
