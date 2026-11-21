@@ -97,3 +97,36 @@ def brute_force_bigram(*, atol: float = 1e-12) -> OracleResult:
 def brute_force_trigram(*, atol: float = 1e-12) -> OracleResult:
     """Trả đủ 27 score, score tốt nhất và tất cả nghiệm hòa của Trigram."""
     return enumerate_sequences(trigram_score, atol=atol)
+
+
+def brute_force(order: int, tokens: tuple[str, ...], labels: tuple[str, ...],
+                pi: dict[str, float], q1: dict[str, dict[str, float]],
+                q2: dict[tuple[str, str], dict[str, float]],
+                emissions: dict[str, dict[str, float]], *, atol: float = 1e-12) -> OracleResult:
+    """Vét cạn bảng bất kỳ bằng log và vòng lặp, không import src/NumPy/adapter."""
+    if order not in (1, 2) or not tokens or not labels or len(set(labels)) != len(labels):
+        raise ValueError('Cần order=1/2, câu không rỗng và labels phân biệt.')
+    if not 0 <= atol < float('inf'):
+        raise ValueError('atol phải hữu hạn và không âm.')
+    scored: list[tuple[Sequence, float]] = []
+    best = float('-inf')
+    for seq in product(labels, repeat=len(tokens)):
+        score = 0.0
+        u, v = START, START
+        for i, tag in enumerate(seq):
+            if order == 1:
+                transition = pi[tag] if i == 0 else q1[seq[i - 1]][tag]
+            else:
+                transition = q2[u, v][tag]
+            score += log(transition)
+            score += log(emissions[tag][tokens[i]])
+            u, v = v, tag
+        score += log(q1[seq[-1]][END] if order == 1 else q2[u, v][END])
+        scored.append((seq, score))
+        if score > best:
+            best = score
+    winners = set()
+    for seq, score in scored:
+        if isclose(score, best, rel_tol=0, abs_tol=atol):
+            winners.add(seq)
+    return scored, best, winners
