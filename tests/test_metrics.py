@@ -13,7 +13,7 @@ def test_hand_calculated_accuracy_and_fixed_label_macro_f1():
     assert scores["token_accuracy"] == pytest.approx(3 / 4)
     # NOUN F1=4/5; VERB=0; PUNCT=1; absent ADJ=0.
     assert scores["macro_f1"] == pytest.approx((4 / 5 + 0 + 1 + 0) / 4)
-    assert scores["oov_accuracy"] == pytest.approx(1 / 2)
+    assert scores["oov_accuracy"] == pytest.approx(1.0)
     assert scores["oov_rate"] == pytest.approx(1 / 2)
     assert scores["accuracy_no_punct"] == pytest.approx(2 / 3)
 
