@@ -50,3 +50,19 @@ def test_invalid_sequence(seq: tuple[str, ...]) -> None:
     for score in (bigram_score, trigram_score):
         with pytest.raises(ValueError):
             score(seq)
+
+
+@pytest.mark.parametrize('order', [1, 2])
+def test_decoder_matches_oracle(order: int) -> None:
+    """Decoder TV2 phải đạt score oracle và trả một trong mọi nghiệm hòa."""
+    import adapters
+    from test_normalization import toy_tables
+
+    try:
+        model = adapters.build_toy_model(order, toy_tables())
+    except NotImplementedError:
+        pytest.xfail('Chờ API TV2; chưa xác nhận decoder')
+    _, best, winners = (brute_force_bigram if order == 1 else brute_force_trigram)()
+    tags, score = adapters.decode(model, list(TOKENS))
+    assert tuple(tags) in winners
+    assert score == pytest.approx(best, abs=1e-12)

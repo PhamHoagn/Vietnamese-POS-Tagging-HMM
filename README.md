@@ -200,3 +200,30 @@ cột split để trống, không suy đoán. sent_id thiếu cũng để trốn
 khớp tập FORM nguyên gốc model đã học, không dùng vocabulary sau cutoff.
 Chỉ xuất dự đoán test sau khi khóa cấu hình. Fit chỉ nhận dữ liệu train do người
 chạy cung cấp; tên split không thể được xác minh tự động từ nội dung Sentence.
+
+### Mốc ngày 23 — test độc lập và phân tích lỗi dev
+
+```bash
+python -m pytest tests/test_bruteforce.py tests/test_normalization.py tests/test_edge_cases.py -q -rx
+python -m src.error_script results/tables/baseline_dev.csv --split dev --limit 10
+```
+
+Các test normalization/edge-case chỉ gọi model qua `tests/adapters.py`.
+Trong lúc adapter chưa cài, chúng báo XFAIL vì NotImplementedError; đây không
+phải bằng chứng decoder đạt kiểm thử. Với marker strict, khi API chạy được sẽ
+XPASS (làm suite thất bại), yêu cầu bỏ marker chờ để chuyển sang test bình thường.
+Oracle vét cạn chạy độc lập và đã có kỳ vọng tính tay. Test câu dài kiểm tra
+score đường đi, độ dài và tính lặp lại, không khẳng định tối ưu bằng vét cạn.
+
+Phần chờ TV2: API nạp bảng toy, decode trả tags + log-score, truy xuất hàng
+transition/emission, và API fit cho kiểm thử smoothing/cutoff=0/1/2 trên train.
+Các test uniform/UNK hiện chỉ kiểm tra bảng cho trước, chưa chứng minh quá trình
+ước lượng smoothing từ counts đúng. Không sửa decoder thay TV2.
+
+Error script xuất `dev_errors.csv`, `dev_examples.csv`, `dev_error_pairs.csv`
+vào `results/tables/errors/`. Giữ token/gold/pred/OOV, thêm tên file và số dòng
+CSV để truy vết; explanation để trống cho nhóm phân tích. Ví dụ là tối đa 10
+lỗi đầu theo thứ tự CSV, không đại diện mẫu ngẫu nhiên. Không đủ lỗi thì xuất
+đúng số có thật. Chạy riêng từng CSV B0/H1/H2 với `--output-dir` khác nhau để
+không ghi đè. Script không tính lại metrics của TV3, không fit/tune model.
+Chỉ dùng `--split test` sau khi khóa cấu hình. Không tự mở corpus thật.
