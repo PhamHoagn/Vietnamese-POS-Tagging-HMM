@@ -1,0 +1,3 @@
+# Fixture tự tạo với nhãn không thuộc UPOS.
+# sent_id = invalid-upos
+1	sinh viên	_	NN	_	_	0	root	_	_
