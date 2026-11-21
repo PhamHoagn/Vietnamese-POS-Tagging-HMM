@@ -1,5 +1,8 @@
 # TV2 Giai đoạn 1 Bigram HMM
 
+Tài liệu này ghi bàn giao giai đoạn 1. Trạng thái triển khai mới hơn và benchmark
+nằm trong [TV2_TRIGRAM.md](TV2_TRIGRAM.md).
+
 ## Phạm vi và dữ liệu
 
 Bigram đã triển khai counts, Add-alpha transition/emission, UNK, Viterbi log-space,

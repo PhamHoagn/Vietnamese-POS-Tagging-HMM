@@ -9,7 +9,10 @@ from typing import Self
 import numpy as np
 
 from .contracts import Corpus, UPOS_TAGS, validate_hmm_config, validate_tokens
-from .hmm_common import CODE_VERSION, END, START, UNK, EmissionSymbol, HMMTrainingCache
+from .hmm_common import (
+    CODE_VERSION, END, START, UNK, EmissionCounts, EmissionSymbol,
+    HMMProbabilities, HMMTrainingCache, TrainingCounts,
+)
 
 
 def _validate_words(words: list[str]) -> None:
@@ -35,6 +38,9 @@ class BigramHMMTagger:
     prediction returns [] for compatibility with the common project contract.
     """
 
+    model_kind = "bigram"
+    code_version = CODE_VERSION
+
     def __init__(
         self, alpha: float = 0.1, cutoff: int = 1, *,
         cache: HMMTrainingCache | None = None, use_cache: bool = True,
@@ -59,9 +65,7 @@ class BigramHMMTagger:
         ):
             raise ValueError("Training data/config does not match the saved configuration.")
         emissions = self.cache.emissions(training, cutoff, use_cache=self.use_cache)
-        probabilities = self.cache.bigram_probabilities(
-            training, emissions, alpha, cutoff, use_cache=self.use_cache,
-        )
+        transition_counts, probabilities = self._prepare_model(training, emissions, alpha, cutoff)
         # Publish only after successful preparation, preserving a previous fit on error.
         self.alpha, self.cutoff = alpha, cutoff
         self.tags = training.tags
@@ -75,16 +79,23 @@ class BigramHMMTagger:
         self.unk_map_ = emissions.unk_map
         self.unk_index_ = len(emissions.words)
         self.training_fingerprint_ = training.fingerprint
-        self.transition_counts_ = training.bigram_counts
+        self.transition_counts_ = transition_counts
         self.emission_counts_ = emissions.counts
         self.transition_log_probs_ = probabilities.transition
         self.emission_log_probs_ = probabilities.emission
         self._fitted_parameters = (alpha, cutoff)
         return self
 
+    def _prepare_model(
+        self, training: TrainingCounts, emissions: EmissionCounts, alpha: float, cutoff: int,
+    ) -> tuple[np.ndarray, HMMProbabilities]:
+        return training.bigram_counts, self.cache.bigram_probabilities(
+            training, emissions, alpha, cutoff, use_cache=self.use_cache,
+        )
+
     def _require_fitted(self) -> None:
         if not hasattr(self, "_fitted_parameters"):
-            raise RuntimeError("BigramHMM must be fit before prediction/scoring.")
+            raise RuntimeError(f"{type(self).__name__} must be fit before prediction/scoring.")
         if (self.alpha, self.cutoff) != self._fitted_parameters:
             raise RuntimeError("Configuration changed after fit; call fit again.")
 
@@ -203,7 +214,7 @@ class BigramHMMTagger:
         """Save locked metadata only, not weights; load_config requires refitting."""
         self._require_fitted()
         config = {
-            "schema_version": 1, "model": "bigram", "code_version": CODE_VERSION,
+            "schema_version": 1, "model": self.model_kind, "code_version": self.code_version,
             "alpha": self.alpha, "cutoff": self.cutoff, "tags": list(self.tags),
             "training_sha256": self.training_fingerprint_,
         }
@@ -217,9 +228,9 @@ class BigramHMMTagger:
         config = json.loads(Path(path).read_text(encoding="utf-8"))
         required = {"schema_version", "model", "code_version", "alpha", "cutoff", "tags", "training_sha256"}
         if (not isinstance(config, dict) or set(config) != required
-                or config["schema_version"] != 1 or config["model"] != "bigram"
-                or config["code_version"] != CODE_VERSION):
-            raise ValueError("Unsupported Bigram configuration/schema/code version.")
+                or config["schema_version"] != 1 or config["model"] != cls.model_kind
+                or config["code_version"] != cls.code_version):
+            raise ValueError(f"Unsupported {cls.model_kind} configuration/schema/code version.")
         tags = config["tags"]
         fingerprint = config["training_sha256"]
         if (not isinstance(tags, list) or not tags or any(tag not in UPOS_TAGS for tag in tags)

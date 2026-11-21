@@ -21,7 +21,7 @@ src/
   baseline.py           # MostFrequentTagger
   hmm_common.py         # counts train-only, UNK và cache của TV2
   hmm_bigram.py         # Bigram HMM + Viterbi đã triển khai
-  hmm_trigram.py        # placeholder
+  hmm_trigram.py        # Trigram HMM + Viterbi NumPy đã triển khai
   metrics.py            # 2 metric hoàn chỉnh, 3 metric dự phòng
   model_selection.py    # interface grid search, placeholder
 tests/
@@ -30,11 +30,14 @@ tests/
   test_metrics.py
   test_contract.py
   test_hmm_bigram.py    # TV2 tự kiểm tra; không thay oracle độc lập của TV1
+  test_hmm_trigram.py
+  test_benchmark_hmm.py
   toy_corpus.py         # dữ liệu và xác suất kỳ vọng tính tay
   fixtures/tiny.conllu
 scripts/
   __init__.py
   smoke_test.py
+  benchmark_hmm.py      # đo tốc độ train/dev, không chọn tham số theo metric
 notebooks/
 data/raw/
 results/tables/
@@ -117,10 +120,10 @@ API bổ sung của TV2, cấu hình/cache và quy ước câu rỗng nằm tron
 [TV2_BIGRAM.md](TV2_BIGRAM.md). `BigramHMMTagger.predict([])` vẫn trả `[]`;
 lớp `BigramHMM` mới từ chối câu rỗng. Không thay parser hoặc kiểu Corpus hiện có.
 
-**Ngoại lệ placeholder hiện tại:** Trigram chỉ kiểm tra constructor; mọi lời gọi
-`fit`/`predict`, kể cả câu rỗng/chưa fit, đều gây `NotImplementedError` rõ ràng.
-Chưa có vocabulary hoặc xác suất Trigram được học; không được coi là model đã fit.
-Khi TV2 triển khai, thay test placeholder bằng test thuật toán và giữ contract.
+Trigram đã triển khai cùng API, dùng hai START và transition bậc hai; xem
+[TV2_TRIGRAM.md](TV2_TRIGRAM.md) về tensor, cache, save/load config và benchmark.
+`TrigramHMMTagger.predict([])` trả `[]`; lớp mới `TrigramHMM` từ chối câu rỗng.
+Hai HMM đã có self-check TV2; oracle nghiệm thu TV1 chưa tích hợp vào nhánh này.
 
 ### `src.metrics`
 
@@ -228,7 +231,7 @@ thấy vẫn có phân phối nhờ alpha. Câu rỗng bị bỏ khi train, pred
 TV2 dùng log tự nhiên và float64 để tránh underflow; hòa điểm chọn đường đi có
 chuỗi tag nhỏ nhất theo thứ tự từ điển. TV1 kiểm chứng trên toy model bằng vét cạn
 độc lập, đặc biệt câu một token và điểm kết thúc. Bigram đã có code và self-check
-của TV2; Trigram chưa triển khai và oracle nghiệm thu độc lập của TV1 chưa có.
+của TV2 cho cả hai bậc; oracle nghiệm thu độc lập của TV1 chưa tích hợp.
 
 ## 8. Chống leakage và tái lập
 
@@ -249,7 +252,7 @@ của TV2; Trigram chưa triển khai và oracle nghiệm thu độc lập của
 | Thành viên | File/khu vực phụ trách |
 | --- | --- |
 | TV1 @angqun | `src/data_loader.py`, `src/baseline.py`, `tests/test_data_loader.py`, `tests/test_baseline.py`, `tests/fixtures/`, notebook EDA, test vét cạn HMM độc lập sau này |
-| TV2 @PhamHoagn | `src/hmm_common.py`, `src/hmm_bigram.py`, `src/hmm_trigram.py`, `tests/test_hmm_bigram.py`, `tests/toy_corpus.py`, `docs/TV2_BIGRAM.md`, notebook mô hình; test thuật toán HMM phối hợp TV1 |
+| TV2 @PhamHoagn | `src/hmm_*.py`, `tests/test_hmm_*.py`, `tests/test_benchmark_hmm.py`, `tests/toy_corpus.py`, `scripts/benchmark_hmm.py`, `docs/TV2_*.md`, notebook mô hình; test thuật toán HMM phối hợp TV1 |
 | TV3 @PhuongNamkk5 | `src/metrics.py`, `src/model_selection.py`, `tests/test_metrics.py`, `docs/pre_register_test.md`, `results/`, `report/`, bootstrap CI sau này |
 | Cả nhóm, một người tích hợp mỗi lần | `src/contracts.py`, `tests/test_contract.py`, `scripts/`, `requirements.txt`, `.gitignore`, `README.md`, `docs/PROJECT_CONTRACT.md` |
 
@@ -292,7 +295,7 @@ Chỉ cần CPU; chưa xác minh bằng một runtime Colab thật trong bước
 | Token Accuracy, fixed-label Macro-F1 | Hoàn chỉnh |
 | OOV Accuracy/Rate, accuracy_no_punct | Chưa làm; trả `None` |
 | Bigram training, Viterbi NumPy, UNK, log_joint, config/cache | Đã triển khai; xem TV2_BIGRAM.md |
-| Trigram training, Viterbi và benchmark | Chưa làm; `NotImplementedError` |
+| Trigram training, Viterbi NumPy và benchmark CPU dev | Đã triển khai; xem TV2_TRIGRAM.md và results/tables/bench_dev.csv |
 | Grid search | Chỉ signature/tài liệu; `NotImplementedError` |
 | Bootstrap CI, EDA, corpus thật, thực nghiệm, báo cáo | Chưa làm |
 | Unit test và smoke test | Đã chạy thành công trên Windows local, xem bên dưới |

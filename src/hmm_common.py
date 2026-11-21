@@ -58,6 +58,7 @@ class TrainingCounts:
     tag_counts: np.ndarray
     word_tag_counts: Mapping[tuple[str, str], int]
     bigram_counts: np.ndarray  # rows: tags + START; columns: tags + END
+    trigram_counts: np.ndarray  # context axes: tags + START; target axis: tags + END
 
 
 @dataclass(frozen=True)
@@ -69,7 +70,7 @@ class EmissionCounts:
 
 
 @dataclass(frozen=True)
-class BigramProbabilities:
+class HMMProbabilities:
     transition: np.ndarray
     emission: np.ndarray
 
@@ -85,7 +86,9 @@ class HMMTrainingCache:
     def __init__(self) -> None:
         self._training: dict[str, TrainingCounts] = {}
         self._emissions: dict[tuple[str, int], EmissionCounts] = {}
-        self._bigram: dict[tuple[str, float, int], BigramProbabilities] = {}
+        self._bigram: dict[tuple[str, float, int], HMMProbabilities] = {}
+        self._trigram: dict[tuple[str, float, int], HMMProbabilities] = {}
+        self._emission_logs: dict[tuple[str, float, int], np.ndarray] = {}
 
     def training(self, train_data: Corpus, *, use_cache: bool) -> TrainingCounts:
         """Đếm một lần trên các câu train, reset START/EOS ở từng câu.
@@ -106,27 +109,39 @@ class HMMTrainingCache:
         tag_counts: Counter[str] = Counter()
         word_tag_counts: Counter[tuple[str, str]] = Counter()
         transitions: Counter[tuple[str, str]] = Counter()
+        triples: Counter[tuple[str, str, str]] = Counter()
         for words, sentence_tags in sentences:
-            previous = START
+            earlier = previous = START
             for word, tag in zip(words, sentence_tags):
                 word_counts[word] += 1
                 tag_counts[tag] += 1
                 word_tag_counts[word, tag] += 1
                 transitions[previous, tag] += 1
-                previous = tag
+                triples[earlier, previous, tag] += 1
+                earlier, previous = previous, tag
             transitions[previous, END] += 1
+            triples[earlier, previous, END] += 1
         tags = tuple(sorted(tag_counts))
         tag_to_index = {tag: index for index, tag in enumerate(tags)}
         boundary = len(tags)
         bigram_counts = np.zeros((boundary + 1, boundary + 1), dtype=np.int64)
+        trigram_counts = np.zeros((boundary + 1,) * 3, dtype=np.int64)
         for (previous, following), count in transitions.items():
             row = boundary if previous == START else tag_to_index[previous]
             column = boundary if following == END else tag_to_index[following]
             bigram_counts[row, column] = count
+        # Hai START chỉ là lịch sử. Mỗi câu thêm đúng một EOS sau nhãn cuối;
+        # câu một token kết thúc tại lịch sử (START, tag), không cần nhãn giả.
+        # Chỉ đếm theo token/câu, không có ba vòng lặp qua mọi tổ hợp nhãn.
+        for (earlier, previous, following), count in triples.items():
+            first = boundary if earlier == START else tag_to_index[earlier]
+            second = boundary if previous == START else tag_to_index[previous]
+            target = boundary if following == END else tag_to_index[following]
+            trigram_counts[first, second, target] = count
         result = TrainingCounts(
             fingerprint, tags, MappingProxyType(dict(word_counts)),
             _readonly(np.array([tag_counts[tag] for tag in tags], dtype=np.int64)),
-            MappingProxyType(dict(word_tag_counts)), _readonly(bigram_counts),
+            MappingProxyType(dict(word_tag_counts)), _readonly(bigram_counts), _readonly(trigram_counts),
         )
         if use_cache:
             self._training[fingerprint] = result
@@ -155,13 +170,49 @@ class HMMTrainingCache:
     def bigram_probabilities(
         self, training: TrainingCounts, emissions: EmissionCounts,
         alpha: float, cutoff: int, *, use_cache: bool,
-    ) -> BigramProbabilities:
+    ) -> HMMProbabilities:
         alpha, cutoff = validate_hmm_config(alpha, cutoff)
         key = (training.fingerprint, alpha, cutoff)
         if use_cache and key in self._bigram:
             return self._bigram[key]
-        result = BigramProbabilities(add_alpha_logs(training.bigram_counts, alpha),
-                                     add_alpha_logs(emissions.counts, alpha))
+        result = HMMProbabilities(add_alpha_logs(training.bigram_counts, alpha),
+                                 self.emission_logs(training, emissions, alpha, cutoff, use_cache=use_cache))
         if use_cache:
             self._bigram[key] = result
+        return result
+
+    def emission_logs(
+        self, training: TrainingCounts, emissions: EmissionCounts,
+        alpha: float, cutoff: int, *, use_cache: bool,
+    ) -> np.ndarray:
+        """Reuse the exact same emission log table across Bigram and Trigram."""
+        key = (training.fingerprint, alpha, cutoff)
+        if use_cache and key in self._emission_logs:
+            return self._emission_logs[key]
+        result = add_alpha_logs(emissions.counts, alpha)
+        if use_cache:
+            self._emission_logs[key] = result
+        return result
+
+    def trigram_probabilities(
+        self, training: TrainingCounts, emissions: EmissionCounts,
+        alpha: float, cutoff: int, *, use_cache: bool,
+    ) -> HMMProbabilities:
+        """Add-alpha for every context, including unseen pairs -> uniform.
+
+        Làm phẳng hai trục lịch sử thành các hàng độc lập để chuẩn hóa.
+        Mỗi hàng vẫn có đủ |S|+1 đích, gồm EOS; reshape lại tensor ba chiều.
+        Không backoff về Bigram khi count của lịch sử bằng 0.
+        """
+        alpha, cutoff = validate_hmm_config(alpha, cutoff)
+        key = (training.fingerprint, alpha, cutoff)
+        if use_cache and key in self._trigram:
+            return self._trigram[key]
+        counts = training.trigram_counts
+        transition = _readonly(add_alpha_logs(counts.reshape(-1, counts.shape[-1]), alpha).reshape(counts.shape))
+        result = HMMProbabilities(transition, self.emission_logs(
+            training, emissions, alpha, cutoff, use_cache=use_cache,
+        ))
+        if use_cache:
+            self._trigram[key] = result
         return result

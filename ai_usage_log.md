@@ -40,3 +40,42 @@
 - `.\.venv\Scripts\python.exe -m scripts.smoke_test`: PASS, exit 0. Smoke vẫn chạy
   baseline, không tạo kết quả HMM giả. `git diff --check`: sạch. Chưa commit/push;
   dừng ở cuối giai đoạn 1 chờ người dùng duyệt trước khi triển khai Trigram.
+
+## 2026-11-21 Giai đoạn 2 Trigram NumPy và benchmark
+
+- Người dùng yêu cầu tiếp tục công việc TV2, chưa merge TV1. AI hỗ trợ triển khai
+  `src/hmm_trigram.py`, mở rộng `src/hmm_common.py` để đếm hai bậc trong một lần
+  duyệt train và cache log emission chung. Refactor hook preparation/config của
+  `src/hmm_bigram.py` để tái sử dụng vòng đời model, giữ API và config Bigram cũ.
+- Tạo `tests/test_hmm_trigram.py`, `tests/test_benchmark_hmm.py`,
+  `scripts/benchmark_hmm.py`, `docs/TV2_TRIGRAM.md`; bổ sung toy counts/phân số trong
+  `tests/toy_corpus.py`, thay test placeholder Trigram bằng kiểm tra dự đoán thật
+  trong `tests/test_contract.py`; cập nhật contract và liên kết tài liệu Bigram.
+- Không sửa source/test parser, baseline, EDA, metrics, grid search, báo cáo hay
+  adapter của TV1/TV3; không merge nhánh nào. Các file benchmark CSV/JSON chỉ ghi
+  số đo runtime và metadata, không chứa văn bản corpus hoặc điểm chất lượng.
+- Người dùng chưa biết vị trí corpus thật. AI xác minh nguồn UD Vietnamese-VTB,
+  ghim commit `fa7130860b65db9db342542c51dc57badd30fa9e`, tải riêng train/dev và
+  README/LICENSE vào thư mục local được ignore `.venv/benchmark_data/`.
+  SHA-256 của train/dev và mẫu câu được ghi trong `results/tables/bench_dev.json`.
+  Không tải hoặc parse file test; không đưa corpus gốc vào Git.
+- Self-check TV2: counts START/END tính tay, chuẩn hóa mọi lịch sử kể cả chưa thấy,
+  uniform thay vì Bigram backoff, emission/UNK dùng chung, vét cạn câu ngắn qua
+  log_joint, 60 corpus toy ngẫu nhiên seed 2026, câu dài, một nhãn, câu rỗng, EOS
+  làm đổi nghiệm một token, tie-break, cache on/off và save/load config khác bậc.
+- Người dùng cần tự kiểm chứng: tensor `[u,v,w]` và argmax theo u; khởi tạo hai
+  START; backpointer lưu u và dịch cặp khi truy vết; mẫu số có EOS; rank prefix;
+  log_joint tính từ counts. Các self-check này không thay oracle độc lập của TV1.
+- Benchmark thực tế: train 1400 câu/20215 token; dev 1123 câu/26162 token;
+  mẫu 100 câu/2357 token, dài 3–96. Mỗi bậc đo 9 cấu hình, 3 lần decode/config,
+  median, cache chung. Dự phóng có hệ số 1.5: Bigram 3.4566 giây, Trigram 16.7678
+  giây, cả hai 20.2244 giây; dưới ngân sách 90 phút trên Windows local này.
+  Đây là dự phóng runtime, không phải full-grid quality experiment hoặc số đo Colab.
+- Kết quả cuối: **209 passed in 1.44s**, smoke PASS; metadata hash code khớp.
+  Pytest dùng basetemp mới trong `.venv/tmp` vì temp hệ thống đã từng lỗi quyền.
+  Không có lỗi thuật toán nào được phát hiện trong lần chạy này; chưa có kiểm
+  chứng oracle nghiệm thu của TV1. Runtime dao động giữa các lần đo; giữ lần đo
+  cuối trong CSV/JSON thay vì chọn lần nhanh nhất để báo cáo.
+- Lệnh chạy lại nằm trong `docs/TV2_TRIGRAM.md`, gồm lấy train/dev bằng commit/hash
+  cố định, unit tests, smoke và benchmark. Chưa commit/push thay đổi giai đoạn 2;
+  dừng sau bàn giao để người dùng review theo quy trình từng giai đoạn.

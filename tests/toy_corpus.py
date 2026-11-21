@@ -35,3 +35,15 @@ HAND_CASES = [
     (["a", "b"], ["NOUN", "VERB"], Fraction(4, 63)),
     (["a", "b", "b"], ["NOUN", "VERB", "VERB"], Fraction(4, 567)),
 ]
+
+# Trigram: history axes NOUN/VERB/START, target NOUN/VERB/END.
+TRIGRAM_NONZERO_COUNTS = {
+    (2, 2, 0): 3, (2, 2, 1): 1,
+    (2, 0, 1): 2, (2, 0, 2): 1,
+    (2, 1, 2): 1, (0, 1, 2): 2,
+}
+TRIGRAM_HAND_CASES = [
+    (["a"], ["NOUN"], Fraction(2, 21)),
+    (["a", "b"], ["NOUN", "VERB"], Fraction(2, 35)),
+    (["a", "b", "b"], ["NOUN", "VERB", "VERB"], Fraction(4, 945)),
+]

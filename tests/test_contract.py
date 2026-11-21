@@ -19,16 +19,14 @@ def test_shared_model_signatures(tagger_class):
     assert list(inspect.signature(model.predict).parameters) == ["tokens"]
 
 
-@pytest.mark.parametrize("tagger_class", [TrigramHMMTagger])
-def test_hmm_placeholders_never_claim_training_or_predictions(tagger_class):
+@pytest.mark.parametrize("tagger_class", [BigramHMMTagger, TrigramHMMTagger])
+def test_hmm_training_now_produces_aligned_predictions(tagger_class):
     model = tagger_class(alpha=0.1, cutoff=1)
     assert model.alpha == 0.1
     assert model.cutoff == 1
-    with pytest.raises(NotImplementedError, match="training"):
-        model.fit([(["a"], ["NOUN"])])
-    for tokens in ([], ["a"]):
-        with pytest.raises(NotImplementedError, match="Viterbi"):
-            model.predict(tokens)
+    assert model.fit([(["a"], ["NOUN"])]) is model
+    assert model.predict([]) == []
+    assert model.predict(["a"]) == ["NOUN"]
 
 
 @pytest.mark.parametrize("tagger_class", [BigramHMMTagger, TrigramHMMTagger])
