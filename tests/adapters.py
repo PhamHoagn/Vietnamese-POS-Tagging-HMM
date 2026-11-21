@@ -129,3 +129,25 @@ def fit_train_model(
         raise ValueError('order phải là 1 hoặc 2.')
     model.fit([(list(tokens), list(tags)) for tokens, tags in train_sentences])
     return model
+
+
+class TrainingSnapshot(TypedDict):
+    """Bản sao counts và vocab thực sự trong model, dành riêng kiểm thử leakage."""
+
+    counts: Mapping[str, object]
+    train_vocab: Sequence[str]
+    emission_vocab: Sequence[str]
+
+
+def get_training_snapshot(model: object) -> TrainingSnapshot:
+    """Trả snapshot trạng thái đã học; không tính lại counts từ corpus của test.
+
+    counts chứa đủ bảng đếm start/transition/emission/tag/word thực tế của model.
+    Biểu diễn JSON: dict lồng nhau với khóa chuỗi và giá trị count nguyên;
+    khóa tuple được mã hóa JSON giữ nguyên thứ tự phần tử, tránh ghép gây va chạm.
+    Không đưa thời gian, cache decode hay ID đối tượng vào counts.
+    train_vocab là vocabulary trước cutoff; emission_vocab là sau cutoff gồm UNK.
+    Snapshot phải là bản sao độc lập. Test tự chuẩn hóa thứ tự khóa và hash SHA-256.
+    Không được trả snapshot rỗng/hằng số hoặc dựng từ dữ liệu kỳ vọng để test pass.
+    """
+    raise NotImplementedError('Chờ TV2 chốt tên trường counts và vocabulary thực tế.')
