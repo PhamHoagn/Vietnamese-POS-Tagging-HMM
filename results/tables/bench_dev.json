@@ -1,5 +1,5 @@
 {
-  "measured_at_utc": "2026-11-21T11:21:16.678445+00:00",
+  "measured_at_utc": "2026-11-21T11:40:11.323077+00:00",
   "corpus_ref": "fa7130860b65db9db342542c51dc57badd30fa9e",
   "train_file": "vi_vtb-ud-train.conllu",
   "dev_file": "vi_vtb-ud-dev.conllu",
@@ -114,9 +114,11 @@
   "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
   "code_sha256": {
     "src/hmm_common.py": "cb0ced0211a97e2cc243752563e428b3a6e629bf266ab668fcca92bc10e4e739",
-    "src/hmm_bigram.py": "393e438b52d2590b145d2762dd065cdc42911a6f5012c17ffa307cec650eb6ce",
-    "src/hmm_trigram.py": "e4cdea183c6c1281b2283d366640f9d3615c83760f3aecce3881b851be39b323",
-    "scripts/benchmark_hmm.py": "b656fec04178a63a55f88c4c173f9c2824746ea781490d9d0d12a551ee191649"
+    "src/hmm_bigram.py": "a1e68af61e59d347b940496a3540edb69e9fa4fb2637132f0770da40b80b37e7",
+    "src/hmm_trigram.py": "8bf1e19eea160116c65464bf363f61947c51f15901ca0c3ef1467852b241e766",
+    "src/hmm_tables.py": "6f03e00196fe217e2af6e8923e2e829edf6dd4f8cf1b6403154dc75b4ef7e91c",
+    "src/data_loader.py": "82528b7d04235bc411cf777ee5b004e09ebf1f0c415c8c40573b547b2bd0891b",
+    "scripts/benchmark_hmm.py": "326268ead1f74cae1b683309f31b34df49a57673375183a6607ddeed50116518"
   },
   "alphas": [
     0.01,
@@ -132,10 +134,10 @@
   "safety_factor": 1.5,
   "budget_minutes": 90,
   "projected_seconds_by_model": {
-    "bigram": 3.45658569998061,
-    "trigram": 16.767770066667545
+    "bigram": 3.4454761456873486,
+    "trigram": 12.772542867085772
   },
-  "projected_total_seconds": 20.224355766648156,
+  "projected_total_seconds": 16.21801901277312,
   "within_budget": true,
   "scope": "Runtime only. Train fit; dev token decoding. No accuracy, tuning, or test corpus.",
   "limitations": "Token-rate extrapolation on this machine; excludes loading, metrics, CSV prediction export, and CI."

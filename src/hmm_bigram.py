@@ -2,6 +2,7 @@
 
 import json
 import math
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import MappingProxyType
 from typing import Self
@@ -84,7 +85,18 @@ class BigramHMMTagger:
         self.transition_log_probs_ = probabilities.transition
         self.emission_log_probs_ = probabilities.emission
         self._fitted_parameters = (alpha, cutoff)
+        self._table_mode = False
         return self
+
+    @classmethod
+    def from_probabilities(
+        cls, labels: Sequence[str], vocabulary: Sequence[str], transition: Mapping,
+        emission: Mapping[str, Mapping[str, float]], *, initial: Mapping[str, float] | None = None,
+    ) -> Self:
+        """Load given probabilities for independent decoder tests, without fitting."""
+        from .hmm_tables import initialize_from_probabilities
+
+        return initialize_from_probabilities(cls(), labels, vocabulary, transition, emission, initial=initial)
 
     def _prepare_model(
         self, training: TrainingCounts, emissions: EmissionCounts, alpha: float, cutoff: int,
@@ -102,6 +114,8 @@ class BigramHMMTagger:
     def map_token(self, word: str) -> EmissionSymbol:
         self._require_fitted()
         validate_tokens([word])
+        if word not in self.retained_vocab_ and self.unk_index_ is None:
+            raise ValueError("OOV word without an UNK outcome in the supplied table.")
         return word if word in self.retained_vocab_ else UNK
 
     def _target_index(self, tag: str) -> int:
@@ -116,6 +130,11 @@ class BigramHMMTagger:
         if previous == END or not isinstance(previous, str) or not previous:
             raise ValueError("A transition context must be a non-empty tag or START, never END.")
         row = len(self.tags) if previous == START else self.tag_to_index_.get(previous)
+        if getattr(self, "_table_mode", False):
+            if row is None:
+                raise KeyError(previous)
+            probability = self._provided_transition_probs[row, column]
+            return math.log(probability) if probability else -math.inf
         if row is None:
             return -math.log(len(self.tags) + 1)  # Unobserved context: uniform Add-alpha.
         counts = self.transition_counts_[row]
@@ -135,6 +154,11 @@ class BigramHMMTagger:
         else:
             validate_tokens([word])
             column = self.word_to_index_.get(word, self.unk_index_)
+        if column is None:
+            raise ValueError("OOV word without an UNK outcome in the supplied table.")
+        if getattr(self, "_table_mode", False):
+            probability = self._provided_emission_probs[row, column]
+            return math.log(probability) if probability else -math.inf
         return _log_probability(int(self.emission_counts_[row, column]), int(self.tag_counts_[row]),
                                 self.alpha, self.unk_index_ + 1)
 
@@ -147,11 +171,18 @@ class BigramHMMTagger:
         self._require_fitted()
         _validate_words(tokens)
         if not tokens:
+            if getattr(self, "_table_mode", False) and self.model_kind == "bigram":
+                raise ValueError("Empty Bigram table sequence has no initial tag.")
             return []
         indices = [self.word_to_index_.get(word, self.unk_index_) for word in tokens]
+        if None in indices:
+            raise ValueError("OOV word without an UNK outcome in the supplied table.")
         # Gather the full sentence before the time loop; all logs were prepared in fit.
         emissions = np.ascontiguousarray(self.emission_log_probs_[:, indices].T)
-        return self._viterbi(emissions)
+        result = self._viterbi(emissions)
+        if getattr(self, "_table_mode", False) and not math.isfinite(self.log_joint(tokens, result)):
+            raise ValueError("No positive-probability path exists for this sequence.")
+        return result
 
     def _viterbi(self, emissions: np.ndarray) -> list[str]:
         """Viterbi Bigram trong log-space, O(T*S^2), backpointer O(T*S).
@@ -213,6 +244,8 @@ class BigramHMMTagger:
     def save_config(self, path: str | Path) -> None:
         """Save locked metadata only, not weights; load_config requires refitting."""
         self._require_fitted()
+        if getattr(self, "_table_mode", False):
+            raise ValueError("Explicit probability tables are not a train-derived config checkpoint.")
         config = {
             "schema_version": 1, "model": self.model_kind, "code_version": self.code_version,
             "alpha": self.alpha, "cutoff": self.cutoff, "tags": list(self.tags),

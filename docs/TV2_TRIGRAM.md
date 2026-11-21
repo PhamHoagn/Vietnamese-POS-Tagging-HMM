@@ -1,10 +1,13 @@
 # TV2 Giai đoạn 2 Trigram HMM và benchmark CPU
 
+Sau checkpoint giai đoạn 2 `0ab2285`, TV1 đã được tích hợp trên nhánh feature;
+xem [biên bản tích hợp](INTEGRATION_TV1_TV2.md). Main chưa được merge.
+
 ## Trạng thái và phạm vi
 
 Trigram đã có supervised counts, Add-alpha, Viterbi NumPy theo cặp nhãn,
 `log_joint` tính từ counts, batch predict, save/load config và cache. Parser,
-baseline, metrics, grid search và nhánh TV1 không bị sửa hoặc merge.
+baseline/EDA nhận nguyên bản từ TV1 khi tích hợp; metrics và grid search giữ nguyên.
 Benchmark chỉ đo tốc độ trên train/dev; không dùng test, không chấm chất lượng
 hoặc chọn alpha/cutoff. Đây chưa phải nghiệm thu oracle độc lập của TV1.
 
@@ -131,13 +134,13 @@ Colab. Chưa gồm load dữ liệu, tính metric, xuất predictions CSV hoặc
 Phải đo lại trên máy dùng chạy thực nghiệm nếu môi trường thay đổi; runtime gate
 không thay gate tính đúng qua oracle độc lập.
 
-Kết quả lần đo cuối ngày 2026-11-21, Python 3.14.7, NumPy 2.5.5, Windows 11:
+Kết quả lần đo sau tích hợp ngày 2026-11-21, Python 3.14.7, NumPy 2.5.5, Windows 11:
 
 | Phạm vi dự phóng trên toàn dev | Thời gian, đã nhân 1.5 |
 | --- | ---: |
-| 9 cấu hình Bigram | 3.46 giây |
-| 9 cấu hình Trigram | 16.77 giây |
-| Cả 18 cấu hình | 20.22 giây |
+| 9 cấu hình Bigram | 3.45 giây |
+| 9 cấu hình Trigram | 12.77 giây |
+| Cả 18 cấu hình | 16.22 giây |
 
 Runtime gate PASS so với 90 phút. Số chính xác theo từng cấu hình và hash code
 đã chạy nằm trong CSV/JSON, không phải số giả định của kế hoạch.
@@ -186,11 +189,11 @@ gate tốc độ đạt, 2 khi vượt ngân sách; dữ liệu/đối số lỗ
 Self-check TV2 gồm counts và phân số tính tay; chuẩn hóa mọi lịch sử/UNK;
 vét cạn câu 1–3 token và 60 corpus train toy ngẫu nhiên seed 2026; score độc lập
 với decoder; câu một nhãn, câu dài, OOV, cache và config roundtrip. Không coi các
-self-check này là oracle nghiệm thu độc lập của TV1. Nhánh TV1 có oracle riêng
-nhưng chưa merge và adapter nạp bảng toy vẫn cần kết nối ở bước tích hợp.
+self-check này là oracle nghiệm thu độc lập của TV1. Oracle TV1 hiện đã được
+ghép/nối adapter và chạy thật; không thay các bảng kỳ vọng của TV1.
 Chưa chạy runtime Colab thật, chưa tune/chọn mô hình bằng dev và chưa đánh giá test.
 
-Kết quả toàn suite cuối giai đoạn: **209 passed in 1.44s**, exit 0; smoke test
-**PASS**, exit 0. Đã xác nhận SHA-256 của bốn file code trong metadata benchmark
-khớp bytes local của code đã kiểm thử. Không có thao tác merge/commit/push trong
-giai đoạn này; chờ người dùng review trước giai đoạn tiếp theo.
+Kết quả checkpoint giai đoạn 2: **209 passed in 1.44s**. Sau tích hợp TV1:
+**875 passed, 3 subtests passed in 3.69s**, exit 0; smoke **PASS**, exit 0.
+Đã xác nhận SHA-256 của các file code trong metadata benchmark khớp bytes local.
+Chỉ ghép vào nhánh feature theo chỉ dẫn người dùng, chưa merge main hoặc push.

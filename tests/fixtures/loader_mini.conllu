@@ -1,0 +1,12 @@
+# Fixture tự tạo, không lấy từ corpus thật.
+# sent_id = mini-1
+# text = Comment này không phải token.
+1-2	MWT_ONLY	_	_	_	_	_	_	_	_
+1	sinh viên	_	NOUN	_	_	2	nsubj	_	_
+2	học	_	VERB	_	_	0	root	_	_
+3	.	_	PUNCT	_	_	2	punct	_	_
+3.1	EMPTY_ONLY	_	X	_	_	_	_	2:dep	_
+
+# sent_id = mini-single
+# FORM dưới đây cố ý dùng a + combining grave (NFD).
+1	Chào	_	INTJ	_	_	0	root	_	_

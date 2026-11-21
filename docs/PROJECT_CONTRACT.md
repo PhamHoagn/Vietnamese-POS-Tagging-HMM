@@ -20,6 +20,7 @@ src/
   data_loader.py        # parser
   baseline.py           # MostFrequentTagger
   hmm_common.py         # counts train-only, UNK và cache của TV2
+  hmm_tables.py         # nạp bảng xác suất cho oracle, không smoothing lại
   hmm_bigram.py         # Bigram HMM + Viterbi đã triển khai
   hmm_trigram.py        # Trigram HMM + Viterbi NumPy đã triển khai
   metrics.py            # 2 metric hoàn chỉnh, 3 metric dự phòng
@@ -32,6 +33,12 @@ tests/
   test_hmm_bigram.py    # TV2 tự kiểm tra; không thay oracle độc lập của TV1
   test_hmm_trigram.py
   test_benchmark_hmm.py
+  test_adapters.py
+  adapters.py
+  oracle_bruteforce.py
+  test_bruteforce.py
+  test_normalization.py
+  test_edge_cases.py
   toy_corpus.py         # dữ liệu và xác suất kỳ vọng tính tay
   fixtures/tiny.conllu
 scripts/
@@ -93,6 +100,12 @@ kèm đường dẫn/số dòng; lỗi mở file giữ nguyên exception của P
 Đây là bộ đọc FORM/UPOS, không phải validator toàn bộ cấu trúc phụ thuộc UD:
 chưa kiểm tra ID liên tiếp, thứ tự ID, HEAD hoặc quan hệ dependency.
 
+Sau tích hợp TV1, `read_conllu(path, nfc=False)` trả danh sách dataclass
+`src.data_loader.Sentence` có `sent_id`, `tokens`, `tags`; không thay kiểu tuple
+`src.contracts.Sentence`. `load_conllu` vẫn trả Corpus tuple cho HMM/metrics.
+`load_splits(data_dir)` dùng MANIFEST.json và đọc cả ba split, chỉ dùng sau khóa
+test; xác minh hash bằng công cụ TV1 trước khi sử dụng dữ liệu thật.
+
 ### Các tagger
 
 ```python
@@ -123,7 +136,10 @@ lớp `BigramHMM` mới từ chối câu rỗng. Không thay parser hoặc kiể
 Trigram đã triển khai cùng API, dùng hai START và transition bậc hai; xem
 [TV2_TRIGRAM.md](TV2_TRIGRAM.md) về tensor, cache, save/load config và benchmark.
 `TrigramHMMTagger.predict([])` trả `[]`; lớp mới `TrigramHMM` từ chối câu rỗng.
-Hai HMM đã có self-check TV2; oracle nghiệm thu TV1 chưa tích hợp vào nhánh này.
+Hai HMM đã có self-check TV2 và đã nối oracle độc lập của TV1 qua
+`tests/adapters.py`; xem [INTEGRATION_TV1_TV2.md](INTEGRATION_TV1_TV2.md).
+API `from_probabilities` nạp bảng toy cho cùng decoder, giữ nguyên xác suất,
+không thay hành vi fit hoặc dùng oracle tạo dự đoán.
 
 ### `src.metrics`
 
@@ -231,7 +247,7 @@ thấy vẫn có phân phối nhờ alpha. Câu rỗng bị bỏ khi train, pred
 TV2 dùng log tự nhiên và float64 để tránh underflow; hòa điểm chọn đường đi có
 chuỗi tag nhỏ nhất theo thứ tự từ điển. TV1 kiểm chứng trên toy model bằng vét cạn
 độc lập, đặc biệt câu một token và điểm kết thúc. Bigram đã có code và self-check
-của TV2 cho cả hai bậc; oracle nghiệm thu độc lập của TV1 chưa tích hợp.
+của TV2 cho cả hai bậc; oracle độc lập của TV1 đã tích hợp và chạy thành công.
 
 ## 8. Chống leakage và tái lập
 

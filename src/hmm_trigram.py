@@ -34,6 +34,11 @@ class TrigramHMMTagger(BigramHMMTagger):
             if not isinstance(context, str) or not context or context == END:
                 raise ValueError("Contexts must be non-empty tags or START, never END.")
             indices.append(len(self.tags) if context == START else self.tag_to_index_.get(context))
+        if getattr(self, "_table_mode", False):
+            if (earlier, previous) not in self._provided_histories:
+                raise KeyError((earlier, previous))
+            probability = self._provided_transition_probs[indices[0], indices[1], target]
+            return math.log(probability) if probability else -math.inf
         if None in indices:
             return -math.log(len(self.tags) + 1)
         counts = self.transition_counts_[indices[0], indices[1]]
@@ -97,6 +102,8 @@ class TrigramHMMTagger(BigramHMMTagger):
         """
         self._require_fitted()
         _validate_words(words)
+        if not words and not tags and getattr(self, "_table_mode", False):
+            return self._transition_log(START, START, END)
         if not words or len(words) != len(tags):
             raise ValueError("Scoring requires non-empty, aligned words and tags.")
         if any(tag not in self.tag_to_index_ for tag in tags):

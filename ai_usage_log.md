@@ -79,3 +79,34 @@
 - Lệnh chạy lại nằm trong `docs/TV2_TRIGRAM.md`, gồm lấy train/dev bằng commit/hash
   cố định, unit tests, smoke và benchmark. Chưa commit/push thay đổi giai đoạn 2;
   dừng sau bàn giao để người dùng review theo quy trình từng giai đoạn.
+
+## 2026-11-21 Tích hợp TV1 và TV2 theo bước 1 đến 3
+
+- Người dùng duyệt: commit riêng GĐ2, ghép TV1 và chạy toàn bộ kiểm thử; chưa
+  merge vào main. Đã tạo checkpoint `0ab2285`, ghép commit TV1 `5b554a1` vào
+  `feature/hmm-viterbi` bằng merge giữ lịch sử. Main giữ `9e71502`.
+- AI hỗ trợ nối `tests/adapters.py`: gọi model thật cho decode/score và lấy các
+  bảng log/count thật; không dùng oracle hoặc dữ liệu kỳ vọng thay kết quả.
+- Thêm `src/hmm_tables.py`, API `from_probabilities` của HMM và nhánh score từ
+  bảng thường cho toy. Cùng `_viterbi` dùng cho train thật, giữ pi Bigram riêng,
+  hai START Trigram, EOS và các số 0; không huấn luyện/smoothing lại bảng toy.
+- Nối import package `tests` ở ba file test độc lập; bỏ XFAIL chờ API. Giữ nguyên
+  `tests/oracle_bruteforce.py`, bảng/count kỳ vọng và assertion công thức của TV1.
+  Parser, baseline, EDA và error script không có chỉnh sửa ngoài bản TV1 ghép vào.
+- Tạo `tests/test_adapters.py` kiểm tra copy, hàng xác suất độc lập, số 0, đường đi
+  không thể, OOV, bảng lỗi, checkpoint và snapshot counts/vocab không va chạm UNK.
+  Snapshot mã hóa namespace JSON cho emission vocabulary, không tái đếm train.
+- Cập nhật README, contract, tài liệu Trigram, tạo `docs/INTEGRATION_TV1_TV2.md`;
+  cập nhật benchmark script/provenance và đo lại CSV/JSON sau đổi code/parser.
+- Kết quả oracle/normalization/edge riêng: **579 passed in 0.93s**. Cuối cùng toàn
+  suite: **875 passed, 3 subtests passed in 3.69s**, không XFAIL; smoke PASS.
+  Đã kiểm tra 200 HMM ngẫu nhiên mỗi bậc qua oracle độc lập và các ca leakage toy.
+- Benchmark cuối trên 100 câu dev/2357 token: 9 Bigram dự phóng 3.4455 giây,
+  9 Trigram 12.7725 giây, tổng 16.2180 giây, đã nhân an toàn 1.5; gate 90 phút PASS.
+  Số đo local thay đổi theo tải máy; không phải số đo chất lượng hoặc chạy Colab.
+- Người dùng cần review helper nạp bảng chỉ đổi biểu diễn; adapter không có
+  decoder/oracle thứ hai; snapshot lấy counts thật; semantics toy/fit được phân
+  biệt. Không phát hiện lỗi công thức khi chạy oracle; lỗi import và API thiếu
+  trước tích hợp đã được xử lý, không che bằng skip/XFAIL.
+- Chỉ hoàn tất merge commit trên feature sau khi kiểm thử đạt. Không merge main,
+  không push; chưa dùng test corpus thật, chưa làm phần metrics/grid/CI của TV3.

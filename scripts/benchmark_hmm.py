@@ -127,7 +127,8 @@ def benchmark(
         "python": platform.python_version(), "numpy": np.__version__,
         "platform": platform.platform(), "processor": platform.processor(),
         "code_sha256": {name: file_sha256(source_root / name) for name in
-                        ("src/hmm_common.py", "src/hmm_bigram.py", "src/hmm_trigram.py", "scripts/benchmark_hmm.py")},
+                        ("src/hmm_common.py", "src/hmm_bigram.py", "src/hmm_trigram.py", "src/hmm_tables.py",
+                         "src/data_loader.py", "scripts/benchmark_hmm.py")},
         "alphas": list(alphas), "cutoffs": list(cutoffs), "configurations_per_model": len(alphas) * len(cutoffs),
         "safety_factor": safety_factor, "budget_minutes": budget_minutes,
         "projected_seconds_by_model": projections, "projected_total_seconds": projected_total,
