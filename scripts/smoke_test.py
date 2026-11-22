@@ -29,8 +29,20 @@ def main() -> None:
     result = evaluate_pos(dev_data, predictions, model.train_vocab_, UPOS_TAGS)
     require(isclose(result["token_accuracy"], 2 / 3), "Unexpected toy accuracy.")
     require(isclose(result["macro_f1"], 2 / 17), "Unexpected toy macro-F1.")
-    require(all(result[key] is None for key in
-                ("oov_accuracy", "oov_rate", "accuracy_no_punct")), "Reserved metric misreported.")
+    require(
+        all(
+            isinstance(result[key], float)
+            for key in ("oov_accuracy", "oov_rate", "accuracy_no_punct")
+        ),
+        "Implemented metrics must return numeric values.",
+    )
+    require(
+        all(
+            0.0 <= result[key] <= 1.0
+            for key in ("oov_accuracy", "oov_rate", "accuracy_no_punct")
+        ),
+        "Metrics must be between 0 and 1.",
+    )
     for tagger_class in (BigramHMMTagger, TrigramHMMTagger):
         tagger = tagger_class(alpha=0.1, cutoff=1)
         require(isinstance(tagger, POSTagger), "Missing tagger interface.")
