@@ -50,25 +50,28 @@ def rates(rows: list[dict[str, str]], splits: tuple[str, ...],
 
 
 def make_figures(tables_dir: str | Path = "results/tables",
-                 output_dir: str | Path = "results/figures") -> list[Path]:
+                 output_dir: str | Path = "results/figures",
+                 *, splits: tuple[str, ...] = SPLITS) -> list[Path]:
     """Lưu ba figure riêng ở 200 dpi, chỉ lấy số liệu từ CSV."""
+    if splits not in (SPLITS, SPLITS[:2]):
+        raise ValueError("Chỉ hỗ trợ train/dev hoặc train/dev/test.")
     tables, output = Path(tables_dir), Path(output_dir)
     lengths = read_table(tables / "sentence_lengths.csv", {"split", "length", "count"})
     upos = rates(read_table(tables / "upos_distribution.csv", {"split", "upos", "percentage"}),
-                 SPLITS, "percentage", 100)
+                 splits, "percentage", 100)
     oov = rates(read_table(tables / "oov_stats.csv", {"split", "upos", "oov_rate"}),
-                ("dev", "test"), "oov_rate", 1)
-    frequencies: dict[str, dict[int, int]] = {split: {} for split in SPLITS}
+                splits[1:], "oov_rate", 1)
+    frequencies: dict[str, dict[int, int]] = {split: {} for split in splits}
     for row in lengths:
         split, length, count = row["split"], int(row["length"]), int(row["count"])
-        if split not in SPLITS or length < 0 or count <= 0 or length in frequencies[split]:
+        if split not in frequencies or length < 0 or count <= 0 or length in frequencies[split]:
             raise ValueError("Phân bố độ dài không hợp lệ hoặc trùng.")
         frequencies[split][length] = count
     output.mkdir(parents=True, exist_ok=True)
     paths: list[Path] = []
     with plt.rc_context({"font.family": "DejaVu Sans", "font.size": 10}):
         fig, ax = plt.subplots(figsize=(11, 5), layout="constrained")
-        for split in SPLITS:
+        for split in splits:
             pairs = sorted(frequencies[split].items())
             # Các cột rộng 1 token biểu diễn histogram đã tổng hợp, không tái tạo corpus.
             ax.bar([x for x, _ in pairs], [y for _, y in pairs], width=1,
@@ -83,16 +86,16 @@ def make_figures(tables_dir: str | Path = "results/tables",
         plt.close(fig)
         paths.append(path)
 
-        for name, values, splits, title, ylabel, scale in (
-            ("upos_distribution", upos, SPLITS, "Phân bố UPOS theo tập dữ liệu",
+        for name, values, chart_splits, title, ylabel, scale in (
+            ("upos_distribution", upos, splits, "Phân bố UPOS theo tập dữ liệu",
              "Tỷ lệ token trong tập (%)", 1),
-            ("oov_by_upos", oov, ("dev", "test"), "Tỷ lệ OOV theo UPOS — từ vựng train nguyên gốc",
+            ("oov_by_upos", oov, splits[1:], "Tỷ lệ OOV theo UPOS — từ vựng train nguyên gốc",
              "Tỷ lệ OOV trong từng UPOS (%)", 100),
         ):
             fig, ax = plt.subplots(figsize=(12, 5), layout="constrained")
-            width = 0.8 / len(splits)
-            for index, split in enumerate(splits):
-                positions = [i + (index - (len(splits) - 1) / 2) * width for i in range(len(UPOS))]
+            width = 0.8 / len(chart_splits)
+            for index, split in enumerate(chart_splits):
+                positions = [i + (index - (len(chart_splits) - 1) / 2) * width for i in range(len(UPOS))]
                 heights = [values[split, tag] * scale for tag in UPOS]
                 ax.bar(positions, heights, width=width, label=split, color=COLORS[split])
                 for x, y in zip(positions, heights):
@@ -100,7 +103,10 @@ def make_figures(tables_dir: str | Path = "results/tables",
                         ax.text(x, 1, "N/A", ha="center", va="bottom", rotation=90, fontsize=7)
             ax.set_xticks(range(len(UPOS)), UPOS, rotation=45, ha="right")
             ax.set_xlim(-0.6, len(UPOS) - 0.4)
-            ax.set(title=title, xlabel="Nhãn từ loại UPOS", ylabel=ylabel, ylim=(0, 105))
+            ceiling = 105 if name == "oov_by_upos" else max(
+                5, math.ceil(max((v for v in values.values() if math.isfinite(v)), default=0) / 5) * 5 + 2,
+            )
+            ax.set(title=title, xlabel="Nhãn từ loại UPOS", ylabel=ylabel, ylim=(0, ceiling))
             ax.legend(title="Tập dữ liệu")
             if any(math.isnan(v) for v in values.values()):
                 fig.supxlabel("N/A: không có token làm mẫu số")

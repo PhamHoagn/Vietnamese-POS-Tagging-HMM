@@ -1,0 +1,50 @@
+{
+  "repository": "https://github.com/UniversalDependencies/UD_Vietnamese-VTB",
+  "commit": "fa7130860b65db9db342542c51dc57badd30fa9e",
+  "license": "CC BY-SA 4.0",
+  "license_source": "https://github.com/UniversalDependencies/UD_Vietnamese-VTB/blob/fa7130860b65db9db342542c51dc57badd30fa9e/LICENSE.txt",
+  "token_policy": "FORM nguyên gốc; phân biệt hoa thường; giữ dấu cách; không NFC",
+  "scope": [
+    "train",
+    "dev"
+  ],
+  "unopened_test_reference": {
+    "filename": "vi_vtb-ud-test.conllu",
+    "source_tree": "https://github.com/UniversalDependencies/UD_Vietnamese-VTB/tree/fa7130860b65db9db342542c51dc57badd30fa9e",
+    "git_blob_sha1": "29cfccf7bc782829f77d039db5d906157a747ae6",
+    "bytes": 538633
+  },
+  "train": {
+    "filename": "vi_vtb-ud-train.conllu",
+    "source": "https://raw.githubusercontent.com/UniversalDependencies/UD_Vietnamese-VTB/fa7130860b65db9db342542c51dc57badd30fa9e/vi_vtb-ud-train.conllu",
+    "sha256": "1df180722db99b724f7368aca50597133bee28606de3394cd8d12a57da89978d",
+    "bytes": 946835,
+    "sentences": 1400,
+    "word_rows": 20215,
+    "multiword_rows_skipped": 0,
+    "empty_node_rows_skipped": 0,
+    "metadata_only_blocks": 0,
+    "missing_sentence_ids": 0,
+    "repeated_sentence_ids": 0,
+    "non_nfc_tokens": 0
+  },
+  "dev": {
+    "filename": "vi_vtb-ud-dev.conllu",
+    "source": "https://raw.githubusercontent.com/UniversalDependencies/UD_Vietnamese-VTB/fa7130860b65db9db342542c51dc57badd30fa9e/vi_vtb-ud-dev.conllu",
+    "sha256": "0b779257b9225575b3b30e15d64cc4ef9945a77f8cceb9f92d794b483a2752dd",
+    "bytes": 1232268,
+    "sentences": 1123,
+    "word_rows": 26162,
+    "multiword_rows_skipped": 0,
+    "empty_node_rows_skipped": 0,
+    "metadata_only_blocks": 0,
+    "missing_sentence_ids": 0,
+    "repeated_sentence_ids": 0,
+    "non_nfc_tokens": 0
+  },
+  "duplicate_pairs": {
+    "train/train": 48,
+    "dev/dev": 2,
+    "train/dev": 2
+  }
+}

@@ -11,6 +11,16 @@ from statistics import mean, median
 from .contracts import UPOS_TAGS
 from .data_loader import Sentence
 
+DEFAULT_SPLIT_ORDER = ("train", "dev", "test")
+TRAIN_DEV_SPLIT_ORDER = ("train", "dev")
+
+
+def _check_splits(splits: Mapping[str, Sequence[Sentence]], split_order: tuple[str, ...]) -> None:
+    if split_order not in (DEFAULT_SPLIT_ORDER, TRAIN_DEV_SPLIT_ORDER):
+        raise ValueError("Thứ tự split phải là train/dev hoặc train/dev/test.")
+    if set(splits) != set(split_order):
+        raise ValueError(f"Đầu vào phải có đúng các split {'/'.join(split_order)}.")
+
 
 def export_sparsity(
     train_sentences: Sequence[Sentence],
@@ -55,10 +65,14 @@ def export_sparsity(
     train_trigrams: set[tuple[str, str, str]] = set()
     dev_bigram_count = 0
     dev_unseen_bigram_count = 0
+    dev_trigram_count = 0
+    dev_unseen_trigram_count = 0
+    dev_unseen_trigram_history_count = 0
     for sentence in train_sentences:
         bigrams, trigrams = transitions(sentence.tags)
         train_bigrams.update(bigrams)
         train_trigrams.update(trigrams)
+    train_trigram_histories = {(first, second) for first, second, _ in train_trigrams}
     for sentence in dev_sentences:
         # Một transition chỉ xuất hiện một lần trong mỗi câu sau khi dùng set;
         # cần tính theo lượt nên dựng lại chuỗi có lặp ở đây.
@@ -66,6 +80,11 @@ def export_sparsity(
         for pair in zip(padded, padded[1:]):
             dev_bigram_count += 1
             dev_unseen_bigram_count += pair not in train_bigrams
+        padded_trigram = (start, *padded)
+        for triple in zip(padded_trigram, padded_trigram[1:], padded_trigram[2:]):
+            dev_trigram_count += 1
+            dev_unseen_trigram_count += triple not in train_trigrams
+            dev_unseen_trigram_history_count += triple[:2] not in train_trigram_histories
 
     state_count = len(labels) + 1  # S cộng đúng một ký hiệu start/EOS theo từng chiều.
     token_count = sum(form_counts.values())
@@ -88,6 +107,15 @@ def export_sparsity(
         "dev_unseen_bigram_percentage": (
             100.0 * dev_unseen_bigram_count / dev_bigram_count if dev_bigram_count else None
         ),
+        "dev_trigram_transition_count": dev_trigram_count,
+        "dev_unseen_trigram_transition_count": dev_unseen_trigram_count,
+        "dev_unseen_trigram_percentage": (
+            100.0 * dev_unseen_trigram_count / dev_trigram_count if dev_trigram_count else None
+        ),
+        "dev_unseen_trigram_history_count": dev_unseen_trigram_history_count,
+        "dev_unseen_trigram_history_percentage": (
+            100.0 * dev_unseen_trigram_history_count / dev_trigram_count if dev_trigram_count else None
+        ),
     }
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -101,13 +129,14 @@ def export_sparsity(
 def audit_splits(
     splits: Mapping[str, Sequence[Sentence]],
     output_dir: str | Path = "results/tables",
+    *,
+    split_order: tuple[str, ...] = DEFAULT_SPLIT_ORDER,
+    include_tokens: bool = True,
 ) -> Path:
     """Báo trùng/rỗng/nhãn lạ trên câu đã parse, không đổi dữ liệu hay split."""
-    order = ("train", "dev", "test")
-    if set(splits) != set(order):
-        raise ValueError("Đầu vào phải có đúng ba split train/dev/test.")
+    _check_splits(splits, split_order)
     index: dict[str, dict[tuple[str, ...], list[int]]] = {}
-    for split in order:
+    for split in split_order:
         index[split] = {}
         for position, sentence in enumerate(splits[split]):
             if not isinstance(sentence, Sentence):
@@ -119,7 +148,9 @@ def audit_splits(
     path = directory / "duplicates.csv"
     totals: Counter[str] = Counter()
     columns = ["issue", "split_a", "sentence_index_a", "sent_id_a", "split_b",
-               "sentence_index_b", "sent_id_b", "token_index", "tag", "tokens_json"]
+               "sentence_index_b", "sent_id_b", "token_index", "tag"]
+    if include_tokens:
+        columns.append("tokens_json")
     with path.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=columns)
         writer.writeheader()
@@ -127,13 +158,15 @@ def audit_splits(
         def report(issue: str, split: str, position: int, **extra: object) -> None:
             """Ghi vị trí theo chỉ số 0-based và token nguyên gốc dạng JSON."""
             sentence = splits[split][position]
-            writer.writerow({
+            values = {
                 "issue": issue, "split_a": split, "sentence_index_a": position,
-                "sent_id_a": sentence.sent_id,
-                "tokens_json": json.dumps(sentence.tokens, ensure_ascii=False), **extra,
-            })
+                "sent_id_a": sentence.sent_id, **extra,
+            }
+            if include_tokens:
+                values["tokens_json"] = json.dumps(sentence.tokens, ensure_ascii=False)
+            writer.writerow(values)
 
-        for split in order:
+        for split in split_order:
             for position, sentence in enumerate(splits[split]):
                 if not sentence.tokens:
                     report("empty_sentence", split, position)
@@ -147,7 +180,7 @@ def audit_splits(
                     report("duplicate_within", split, first, split_b=split,
                            sentence_index_b=second, sent_id_b=splits[split][second].sent_id)
                     totals[f"within:{split}"] += 1
-        for first_split, second_split in combinations(order, 2):
+        for first_split, second_split in combinations(split_order, 2):
             for tokens, first_positions in index[first_split].items():
                 for first, second in product(first_positions, index[second_split].get(tokens, [])):
                     report("duplicate_cross", first_split, first, split_b=second_split,
@@ -155,11 +188,11 @@ def audit_splits(
                            sent_id_b=splits[second_split][second].sent_id)
                     totals[f"cross:{first_split}:{second_split}"] += 1
 
-    for split in order:
+    for split in split_order:
         print(f"{split}: {totals[f'within:{split}']} cặp câu trùng nội bộ; "
               f"{totals[f'empty:{split}']} câu rỗng; "
               f"{totals[f'unknown:{split}']} vị trí nhãn lạ.")
-    for first, second in combinations(order, 2):
+    for first, second in combinations(split_order, 2):
         print(f"{first} ∩ {second}: {totals[f'cross:{first}:{second}']} cặp câu trùng.")
     print(f"Báo cáo: {path}. Dữ liệu và split được giữ nguyên.")
     return path
@@ -168,11 +201,11 @@ def audit_splits(
 def export_eda(
     splits: Mapping[str, Sequence[Sentence]],
     output_dir: str | Path = "results/tables",
+    *,
+    split_order: tuple[str, ...] = DEFAULT_SPLIT_ORDER,
 ) -> dict[str, Path]:
     """Xuất bốn CSV; chỉ truyền test thật sau khi đã khóa cấu hình."""
-    split_order = ("train", "dev", "test")
-    if set(splits) != set(split_order):
-        raise ValueError("Đầu vào phải có đúng ba split train/dev/test.")
+    _check_splits(splits, split_order)
 
     summaries: list[dict[str, object]] = []
     distributions: list[dict[str, object]] = []
@@ -216,7 +249,7 @@ def export_eda(
     # Đếm FORM nguyên gốc chỉ từ train, không cutoff hay cập nhật từ dev/test.
     train_counts = Counter(token for sentence in splits["train"] for token in sentence.tokens)
     oov_rows: list[dict[str, object]] = []
-    for split in ("dev", "test"):
+    for split in split_order[1:]:
         groups: dict[str, Counter[str]] = {tag: Counter() for tag in ("ALL", *UPOS_TAGS)}
         for sentence in splits[split]:
             for token, tag in zip(sentence.tokens, sentence.tags):
@@ -236,7 +269,7 @@ def export_eda(
                 row[f"{metric}_rate"] = counts[metric] / total if total else None
             oov_rows.append(row)
 
-    # Chỉ tạo file sau khi cả ba split đều qua kiểm tra.
+    # Chỉ tạo file sau khi tất cả split đã chọn đều qua kiểm tra.
     directory = Path(output_dir)
     directory.mkdir(parents=True, exist_ok=True)
     paths = {"eda": directory / "eda.csv",

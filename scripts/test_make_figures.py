@@ -37,3 +37,12 @@ def test_missing_length_csv_fails(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         make_figures(tmp_path, tmp_path / "figures")
     assert not (tmp_path / "figures").exists()
+
+
+def test_figures_can_use_train_dev_without_test_summary(tmp_path: Path) -> None:
+    splits = {name: [Sentence(name, ["x"], ["NOUN"])] for name in ("train", "dev")}
+    tables = tmp_path / "tables"
+    export_eda(splits, tables, split_order=("train", "dev"))
+    images = make_figures(tables, tmp_path / "figures", splits=("train", "dev"))
+    assert [path.name for path in images] == ["sentence_lengths.png", "upos_distribution.png", "oov_by_upos.png"]
+    assert all(path.stat().st_size > 0 for path in images)

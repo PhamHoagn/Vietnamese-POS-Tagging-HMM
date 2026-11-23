@@ -186,6 +186,9 @@ def test_sparsity_from_train_and_dev(tmp_path: Path) -> None:
     assert float(row["bigram_observed_percentage"]) == pytest.approx(37.5)
     assert float(row["trigram_observed_percentage"]) == pytest.approx(10.9375)
     assert float(row["dev_unseen_bigram_percentage"]) == pytest.approx(50)
+    assert int(row["dev_trigram_transition_count"]) == 6
+    assert int(row["dev_unseen_trigram_transition_count"]) == 3
+    assert int(row["dev_unseen_trigram_history_count"]) == 2
     assert (train, dev) == before
 
 
@@ -197,3 +200,30 @@ def test_sparsity_empty_inputs(tmp_path: Path) -> None:
     assert row["bigram_possible_count"] == row["trigram_possible_count"] == "1"
     assert row["ambiguous_token_occurrence_percentage"] == ""
     assert row["dev_unseen_bigram_percentage"] == ""
+
+
+def test_train_dev_scope_reports_cross_duplicates_without_corpus_text(tmp_path: Path) -> None:
+    """Xem hai split trước khi khóa, giữ vị trí trùng mà không xuất câu gốc."""
+    from src.eda import TRAIN_DEV_SPLIT_ORDER, audit_splits
+
+    train = [Sentence("t", ["known"], ["NOUN"])]
+    dev = [Sentence("d1", ["known"], ["NOUN"]), Sentence("d2", ["unknown"], ["NOUN"])]
+    splits = {"train": train, "dev": dev}
+    paths = export_eda(splits, tmp_path, split_order=TRAIN_DEV_SPLIT_ORDER)
+    with paths["eda"].open(encoding="utf-8", newline="") as stream:
+        assert [(row["split"], row["token_count"]) for row in csv.DictReader(stream)] == [
+            ("train", "1"), ("dev", "2"),
+        ]
+    with paths["oov_stats"].open(encoding="utf-8", newline="") as stream:
+        row = next(csv.DictReader(stream))
+        assert (row["split"], row["upos"], row["oov_count"]) == ("dev", "ALL", "1")
+    duplicates = audit_splits(splits, tmp_path, split_order=TRAIN_DEV_SPLIT_ORDER, include_tokens=False)
+    with duplicates.open(encoding="utf-8", newline="") as stream:
+        reader = csv.DictReader(stream)
+        assert "tokens_json" not in reader.fieldnames
+        rows = list(reader)
+    assert [(row["split_a"], row["sent_id_a"], row["split_b"], row["sent_id_b"]) for row in rows] == [
+        ("train", "t", "dev", "d1"),
+    ]
+    with pytest.raises(ValueError):
+        export_eda({**splits, "test": []}, tmp_path, split_order=TRAIN_DEV_SPLIT_ORDER)
