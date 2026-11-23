@@ -1,6 +1,7 @@
 """Show gold, baseline and HMM tags on the repository's synthetic fixture."""
 
 from pathlib import Path
+import sys
 
 from src.baseline import MostFrequentTagger
 from src.data_loader import load_conllu
@@ -29,4 +30,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    # Windows pipes may default to a legacy code page that cannot encode Vietnamese.
+    sys.stdout.reconfigure(encoding="utf-8")
     main()

@@ -82,6 +82,8 @@ Phần [Phương pháp dạng Word](../report/TV2_Phuong_phap_HMM.docx) có côn
 
 ## Kịch bản trình bày trong ba phút
 
+Phần trình bày có [5 slide PowerPoint](../slides/TV2_HMM_Viterbi.pptx) với lời dẫn theo thời lượng ở phần ghi chú. Slide cuối có lệnh mở demo. Bảng giải tay trên slide dùng cùng ví dụ và phân số ở trên.
+
 1. **40 giây.** Giới thiệu đầu vào là câu đã tách token. B0 tra theo FORM, còn HMM tìm cả chuỗi nhãn. Vẽ `s → y₁ → … → yₜ → E` và thêm một `s` cho Trigram.
 2. **70 giây.** Trình bày `e(b|V) = 2/3`, một hàng chuyển tiếp và ý nghĩa của EOS trong mẫu số. Giải ô `(V,V)` trong bảng rồi lần backpointer để lấy `N V V`.
 3. **45 giây.** Chạy demo, đối chiếu các nhãn với Gold. Giải thích OOV được tính theo FORM trước cutoff, còn từ hiếm đã thấy vẫn có thể đi vào ô phát xạ UNK.
