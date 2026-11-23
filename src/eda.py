@@ -12,6 +12,92 @@ from .contracts import UPOS_TAGS
 from .data_loader import Sentence
 
 
+def export_sparsity(
+    train_sentences: Sequence[Sentence],
+    dev_sentences: Sequence[Sentence],
+    output_path: str | Path = "results/tables/sparsity.csv",
+) -> Path:
+    """Xuất sparsity học từ train và độ mới bigram nhãn của dev; không sửa đầu vào."""
+    def checked(sentences: Sequence[Sentence], name: str) -> None:
+        """Xác nhận Sentence, căn chỉnh và UPOS trước khi tạo thống kê."""
+        for index, sentence in enumerate(sentences):
+            if not isinstance(sentence, Sentence):
+                raise TypeError(f"{name}[{index}]: cần Sentence từ read_conllu().")
+            if len(sentence.tokens) != len(sentence.tags):
+                raise ValueError(f"{name}[{index}]: số token và nhãn khác nhau.")
+            if any(not isinstance(token, str) or not token for token in sentence.tokens):
+                raise ValueError(f"{name}[{index}]: FORM phải là chuỗi không rỗng.")
+            if any(tag not in UPOS_TAGS for tag in sentence.tags):
+                raise ValueError(f"{name}[{index}]: nhãn ngoài 17 UPOS.")
+
+    checked(train_sentences, "train")
+    checked(dev_sentences, "dev")
+    start, end = "<s>", "</s>"
+    labels = tuple(tag for tag in UPOS_TAGS if any(tag in sentence.tags for sentence in train_sentences))
+    form_counts = Counter(token for sentence in train_sentences for token in sentence.tokens)
+    form_labels: dict[str, set[str]] = {}
+    for sentence in train_sentences:
+        for token, tag in zip(sentence.tokens, sentence.tags):
+            form_labels.setdefault(token, set()).add(tag)
+    ambiguous_types = {token for token, tags in form_labels.items() if len(tags) > 1}
+    ambiguous_occurrences = sum(form_counts[token] for token in ambiguous_types)
+
+    def transitions(tags: Sequence[str]) -> tuple[set[tuple[str, str]], set[tuple[str, str, str]]]:
+        """Tạo transition bigram/trigram có start và EOS cho một câu."""
+        padded_bigram = (start, *tags, end)
+        padded_trigram = (start, start, *tags, end)
+        return (
+            set(zip(padded_bigram, padded_bigram[1:])),
+            set(zip(padded_trigram, padded_trigram[1:], padded_trigram[2:])),
+        )
+
+    train_bigrams: set[tuple[str, str]] = set()
+    train_trigrams: set[tuple[str, str, str]] = set()
+    dev_bigram_count = 0
+    dev_unseen_bigram_count = 0
+    for sentence in train_sentences:
+        bigrams, trigrams = transitions(sentence.tags)
+        train_bigrams.update(bigrams)
+        train_trigrams.update(trigrams)
+    for sentence in dev_sentences:
+        # Một transition chỉ xuất hiện một lần trong mỗi câu sau khi dùng set;
+        # cần tính theo lượt nên dựng lại chuỗi có lặp ở đây.
+        padded = (start, *sentence.tags, end)
+        for pair in zip(padded, padded[1:]):
+            dev_bigram_count += 1
+            dev_unseen_bigram_count += pair not in train_bigrams
+
+    state_count = len(labels) + 1  # S cộng đúng một ký hiệu start/EOS theo từng chiều.
+    token_count = sum(form_counts.values())
+    row = {
+        "train_label_count": len(labels),
+        "train_token_count": token_count,
+        "ambiguous_token_type_count": len(ambiguous_types),
+        "ambiguous_token_occurrence_count": ambiguous_occurrences,
+        "ambiguous_token_occurrence_percentage": (
+            100.0 * ambiguous_occurrences / token_count if token_count else None
+        ),
+        "bigram_observed_count": len(train_bigrams),
+        "bigram_possible_count": state_count ** 2,
+        "bigram_observed_percentage": 100.0 * len(train_bigrams) / state_count ** 2,
+        "trigram_observed_count": len(train_trigrams),
+        "trigram_possible_count": state_count ** 3,
+        "trigram_observed_percentage": 100.0 * len(train_trigrams) / state_count ** 3,
+        "dev_bigram_transition_count": dev_bigram_count,
+        "dev_unseen_bigram_transition_count": dev_unseen_bigram_count,
+        "dev_unseen_bigram_percentage": (
+            100.0 * dev_unseen_bigram_count / dev_bigram_count if dev_bigram_count else None
+        ),
+    }
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(row))
+        writer.writeheader()
+        writer.writerow(row)
+    return output
+
+
 def audit_splits(
     splits: Mapping[str, Sequence[Sentence]],
     output_dir: str | Path = "results/tables",

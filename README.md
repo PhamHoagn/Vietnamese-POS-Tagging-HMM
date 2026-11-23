@@ -227,3 +227,23 @@ lỗi đầu theo thứ tự CSV, không đại diện mẫu ngẫu nhiên. Khô
 đúng số có thật. Chạy riêng từng CSV B0/H1/H2 với `--output-dir` khác nhau để
 không ghi đè. Script không tính lại metrics của TV3, không fit/tune model.
 Chỉ dùng `--split test` sau khi khóa cấu hình. Không tự mở corpus thật.
+
+### Thống kê sparsity từ train
+
+```python
+from src.eda import export_sparsity
+
+export_sparsity(splits["train"], splits["dev"])
+```
+
+Hàm ghi `results/tables/sparsity.csv` với một dòng số liệu. Một token type mơ hồ
+là FORM đã xuất hiện với hơn một UPOS trong train; phần trăm tương ứng lấy số
+lượt xuất hiện của các type đó chia tổng lượt token train. Bigram/trigram được
+đếm trên chuỗi nhãn có `<s>` ở đầu và `</s>` ở cuối. Không gian khả dĩ lần lượt
+là `(|S| + 1)^2` và `(|S| + 1)^3`, với `S` là nhãn xuất hiện trong train; một
+chiều dùng `<s>`, chiều đích dùng `</s>`. Tỷ lệ bigram dev chưa thấy tính theo
+lượt transition `<s> -> y1`, các chuyển tiếp nội bộ và `yT -> </s>`.
+
+Các số liệu này chỉ mô tả sparsity, hỗ trợ giải thích vì sao Trigram có thể kém
+Bigram; chúng không chứng minh quan hệ nhân quả và không được dùng để chọn tham
+số theo test.
