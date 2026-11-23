@@ -55,6 +55,7 @@ def export_error_analysis(
     *,
     split: str = "dev",
     example_limit: int = 10,
+    quiet: bool = False,
 ) -> dict[str, Path]:
     """Xuất lỗi, cặp nhầm và 5–10 ví dụ xác định từ CSV dự đoán gộp.
 
@@ -190,7 +191,8 @@ def export_error_analysis(
             f"{'Có' if record['is_oov'] else 'Không'} | {group}; [điền sau khi xem] |"
         )
     paths["examples"].write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"{split}: {len(records)} token; {len(errors)} lỗi; {len(selected)} ví dụ xác định.")
+    if not quiet:
+        print(f"{split}: {len(records)} token; {len(errors)} lỗi; {len(selected)} ví dụ xác định.")
     return paths
 
 

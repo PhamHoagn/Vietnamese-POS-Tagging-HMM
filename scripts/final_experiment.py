@@ -248,7 +248,7 @@ def _evaluate(lock, train_path, test_path, test_sha256, private_dir, summary_dir
         test, predictions, comparisons=COMPARISONS, resamples=BOOTSTRAP["replicates"], seed=BOOTSTRAP["seed"],
     )
     write_csv(summary_dir / "paired_bootstrap_test.csv", tuple(intervals[0]), intervals)
-    export_error_analysis(pred_path, train_vocab, private_dir / "errors", split="test")
+    export_error_analysis(pred_path, train_vocab, private_dir / "errors", split="test", quiet=True)
 
     metadata = {
         "run_completed_at_utc": _utc_now(), "lock_sha256": lock["lock_sha256"],

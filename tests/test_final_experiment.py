@@ -1,7 +1,9 @@
 """Exercise the review gate and final output using only the synthetic corpus."""
 
 import csv
+import io
 import json
+from contextlib import redirect_stdout
 from pathlib import Path
 
 import pytest
@@ -79,7 +81,8 @@ def test_locked_runner_reports_all_roles_and_deduplicates_equivalent_models(seal
     monkeypatch.setattr(final, "_verified_test", lambda path: final._sha256(path.read_bytes()))
 
     private, summary = tmp_path / "private", tmp_path / "summary"
-    result = final.run_locked(lock_path, tmp_path, private, summary)
+    with io.TextIOWrapper(io.BytesIO(), encoding="cp1252") as stream, redirect_stdout(stream):
+        result = final.run_locked(lock_path, tmp_path, private, summary)
     assert result["unique_model_configurations"] == 3
     assert result["test_tokens"] == 3
     with (summary / "metrics_test.csv").open(encoding="utf-8") as stream:
