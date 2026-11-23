@@ -154,12 +154,13 @@
 - Manager tạo CLI lập hồ sơ, khóa cấu hình và chạy test cuối với đúng các tham số
   đã chọn trên dev. Kiểm tra toy chứng minh hồ sơ chưa khóa bị từ chối, thay đổi
   tham số hoặc source làm hỏng khóa, các vai trò trùng cấu hình dùng chung dự đoán.
-  Hồ sơ `results/tables/final_candidate.json` ghi commit đánh giá `5dc15e2`.
+  Hồ sơ `results/tables/final_candidate.json` ghi commit đánh giá `e33563b`.
   QA đề nghị ghim cả các mô đun được nạp gián tiếp. Mã băm nguồn đã được mở rộng
   trước khi khóa và bảng cấu hình ứng viên giữ nguyên.
 - QA tính lại toàn bộ điểm và năm ma trận nhầm lẫn từ dự đoán dev. Kiểm tra
   cp1252 bằng test toy phát hiện và xác minh bản sửa lỗi ghi kết quả trên Windows.
-  Suite tích hợp đạt 904 bài kiểm thử và 3 bài kiểm thử con.
+  Hai kiểu xuống dòng LF/CRLF cho cùng mã băm hồ sơ dev. Suite tích hợp
+  đạt 905 bài kiểm thử và 3 bài kiểm thử con.
 - Slide chung 12 trang có lời dẫn 10 phút và đã được kiểm tra trong PowerPoint.
   Biểu đồ dev dùng trực tiếp CSV lưới mở rộng. TV1 đã thử audit sau khóa trên toy.
   Cấu hình test vẫn chờ nhóm xác nhận.

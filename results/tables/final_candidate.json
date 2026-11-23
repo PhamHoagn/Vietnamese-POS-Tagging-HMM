@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "prepared_at_utc": "2026-11-23T22:22:15+00:00",
+  "prepared_at_utc": "2026-11-23T22:24:30+00:00",
   "dataset": {
     "corpus_ref": "fa7130860b65db9db342542c51dc57badd30fa9e",
     "train_sha256": "1df180722db99b724f7368aca50597133bee28606de3394cd8d12a57da89978d",
@@ -77,7 +77,7 @@
       }
     }
   },
-  "dev_selection_sha256": "dff9ed525b9285ed279e70a7d39400a71007be5afd9241c9cd828291c37d166a",
+  "dev_selection_sha256": "878f2ed82b9da793f3db1f7901bb8d15b72dbf019371719f7501bb30da6ce5e8",
   "dev_protocol": {
     "name": "v4.1",
     "selection": "dev_token_accuracy_desc, dev_macro_f1_desc, cutoff_asc, alpha_desc",
@@ -132,7 +132,7 @@
     "numpy": "2.5.5",
     "sklearn": "1.9.1"
   },
-  "code_commit": "5dc15e27465c45a9d120fcb9f0d2adc4fa02b7bc",
+  "code_commit": "e33563b3ee637dffb41b7fc093e5de000938eace",
   "bootstrap": {
     "replicates": 2000,
     "seed": 42,
@@ -156,7 +156,7 @@
     "requirements.txt": "c6ea09fc0dcbda354217c4aa78f1e5cfdc0a48d15b4b89440ba86f18ada00ecf",
     "scripts/__init__.py": "49acf90f132beefbe50a10832c64ded33829b613e85800b10fec2a48a387108b",
     "scripts/evaluate_dev.py": "7a2bcb7b002a4ec0a72d7e26e961493568607f9443969b20f1ab4b34cbea46b9",
-    "scripts/final_experiment.py": "a34326c6d1056d259ff9025abca7c364ed56380921fc81730b16093092748bcc",
+    "scripts/final_experiment.py": "9c8a8d1e7ef8b7303cf7c2b68475107f1179fd0137aa4c691460596f125c9c85",
     "src/__init__.py": "7ab6cba8650d9918396cba172c517c7584cbe6dd9dbec7db0853576c0d8ad28a",
     "src/baseline.py": "0dc665748cbc1194e2228f5faa61e66e88751a730f3f7e3beed37c21ca69c469",
     "src/bootstrap.py": "2f84f2bf347d2b7a7ff32433e32cede056942abc1e65304b375e6d3e28dbcad1",
