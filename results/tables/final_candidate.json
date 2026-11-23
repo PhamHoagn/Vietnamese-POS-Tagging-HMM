@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "prepared_at_utc": "2026-11-23T16:53:36+00:00",
+  "prepared_at_utc": "2026-11-23T16:58:16+00:00",
   "dataset": {
     "corpus_ref": "fa7130860b65db9db342542c51dc57badd30fa9e",
     "train_sha256": "1df180722db99b724f7368aca50597133bee28606de3394cd8d12a57da89978d",
@@ -132,7 +132,7 @@
     "numpy": "2.5.5",
     "sklearn": "1.9.1"
   },
-  "code_commit": "52641d9bee1022c74177abbf276383b465ce8fda",
+  "code_commit": "09959621ada4f42fd7371d5a950ac6d0d0a2d061",
   "bootstrap": {
     "replicates": 2000,
     "seed": 42,
@@ -154,15 +154,19 @@
   ],
   "source_sha256": {
     "requirements.txt": "c6ea09fc0dcbda354217c4aa78f1e5cfdc0a48d15b4b89440ba86f18ada00ecf",
+    "scripts/__init__.py": "49acf90f132beefbe50a10832c64ded33829b613e85800b10fec2a48a387108b",
     "scripts/evaluate_dev.py": "7a2bcb7b002a4ec0a72d7e26e961493568607f9443969b20f1ab4b34cbea46b9",
-    "scripts/final_experiment.py": "7dc72b6e0822da45413df522b2a8353b2ba35015af477e09002b1ff728e9462c",
+    "scripts/final_experiment.py": "3a18fee525b6c5176e7ac36d4eac8fb3c33e35528a9c3c52e3846bacb6d059e3",
+    "src/__init__.py": "7ab6cba8650d9918396cba172c517c7584cbe6dd9dbec7db0853576c0d8ad28a",
     "src/baseline.py": "0dc665748cbc1194e2228f5faa61e66e88751a730f3f7e3beed37c21ca69c469",
     "src/bootstrap.py": "2f84f2bf347d2b7a7ff32433e32cede056942abc1e65304b375e6d3e28dbcad1",
     "src/contracts.py": "670c9a0ec52f69b68b101794bd2de5263e5893a381d8204f45827e5cc4b7511d",
     "src/data_loader.py": "7cf41e2a6fca752a0888e6b3b1efe0cc32f3e98d2c72f8913645cc06d16c1a6c",
+    "src/error_script.py": "9401d151d6f4ae286fd7a0eaeb4689b1432a8fc530b1a459c43d7984ee258a32",
     "src/evaluation_outputs.py": "53f991e916ebfcd9d1908c0211e39a4de54d688d152d6747b74b3e587b294a3f",
     "src/hmm_bigram.py": "00083f452e23f401084156604caa26183e73d53dd9bb3b56a35b2139a045f4b2",
     "src/hmm_common.py": "cb0ced0211a97e2cc243752563e428b3a6e629bf266ab668fcca92bc10e4e739",
+    "src/hmm_tables.py": "6f03e00196fe217e2af6e8923e2e829edf6dd4f8cf1b6403154dc75b4ef7e91c",
     "src/hmm_trigram.py": "c13adefbe5210b98b19ae2d356268b7eacdb26b0654c89c36d56bf51ca61011f",
     "src/metrics.py": "beea3d4075a23b08fd31b307ea9fd79f7967ff2908c7a31f748d2ff9173860a2",
     "src/model_selection.py": "1067362242e703cacd32d2452a7085b1702f4f0fe42ee6c2e5f1490e1091b99d"
