@@ -11,5 +11,5 @@ Trạng thái ngày 24/11/2026, theo các mã việc trong kế hoạch v4.1.
 | W17 | TV1, TV2, TV3 | Chờ kết quả chính thức. Audit Test, kiểm 5–10 lỗi, đối chiếu OOV, no-PUNCT và phân tích uniform, sparsity cùng CI. [Lệnh audit](TV1_DATA.md#chạy-lại) | TV1 kiểm tra căn chỉnh và hash, TV2 và TV3 đọc chéo |
 | W18–W19 | Nhóm | Phần viết báo cáo TV3 được hoãn theo phạm vi hiện tại. [Bản báo cáo của TV3](../report/report_nlp.docx) | Nhóm |
 | W20 | TV1 | README và notebook đã chạy từ kernel Jupyter mới. Kiểm tra liên kết và quyền trên môi trường chia sẻ sau khi đưa bản chốt lên nhánh nộp. [README](../README.md), [notebook](../notebooks/NLP_POS.ipynb) | TV1, manager |
-| W21 | Nhóm | Slide 12 trang và demo đã kiểm tra. Cập nhật bảng kết quả Test, CI, ví dụ lỗi và kết luận, rồi diễn tập 10 phút và 5 phút hỏi đáp. [Slide nhóm](../slides/NLP_POS_NHOM.pptx) | TV2 đã mở và rà bản dev trong PowerPoint |
+| W21 | Nhóm | Slide 12 trang và demo đã kiểm tra. Cập nhật bảng kết quả Test, CI, ví dụ lỗi và kết luận, rồi diễn tập 10 phút và 5 phút hỏi đáp. [Slide nhóm](../slides/NLP_POS_NHOM.pptx), [câu hỏi theo vai trò](DEFENSE_QA.md) | TV2 đã mở và rà bản dev trong PowerPoint |
 | W22 | Nhóm | Soát số liệu và công thức sau Test, kiểm README/slide/notebook và quyền xem. Rà bản PDF, chốt nhánh và nộp khi nhóm xử lý phần báo cáo. | Nhóm |

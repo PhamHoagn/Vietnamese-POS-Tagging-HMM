@@ -39,6 +39,7 @@ train/dev; số in ra dùng để kiểm tra kết nối, không phải kết qu
 - [Giải tay Viterbi và demo](docs/TV2_GIAI_TAY_VITERBI.md)
 - [Grid và kết quả dev](docs/TV3_EVALUATION_RUNBOOK.md)
 - [Đăng ký trước đánh giá test](docs/pre_register_test.md)
+- [Checklist nghiệm thu và minh chứng](docs/PROJECT_CHECKLIST.md)
 
 Không đưa corpus gốc vào Git trước khi xác nhận giấy phép. Thư mục `data/raw/`
 được ignore, ngoại trừ `.gitkeep`.
@@ -46,9 +47,10 @@ Không đưa corpus gốc vào Git trước khi xác nhận giấy phép. Thư m
 ## Tái lập dữ liệu và thực nghiệm dev
 
 ```sh
-python -m scripts.prepare_tv1 --download
+python -X utf8 -m scripts.prepare_tv1 --download
 python -m scripts.evaluate_dev --data data/raw/ud-vtb-fa7130860b65
-python -m scripts.prepare_tv1 --dev-predictions .venv/project-runs/dev/predictions_dev.csv
+python -X utf8 -m scripts.prepare_tv1 --dev-predictions .venv/project-runs/dev/predictions_dev.csv
+python -m scripts.plot_dev_grid
 python -m scripts.demo_tv2
 ```
 

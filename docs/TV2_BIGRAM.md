@@ -180,11 +180,13 @@ và cập nhật tài liệu, toàn bộ suite **138 passed in 1.32s** (exit 0),
 pytest dùng basetemp mới trong `.venv/tmp` để tránh lỗi quyền temp hệ thống.
 Smoke chỉ kiểm tra baseline/integration, còn kiểm thử Bigram nằm trong suite riêng.
 
-## Điểm còn cần kiểm chứng
+## Trạng thái sau tích hợp
 
-- Chưa có oracle nghiệm thu độc lập của TV1, corpus train/dev thật hoặc benchmark.
-- Trigram giữ nguyên placeholder; chưa có `bench_dev.csv` hoặc ước lượng 9 cấu hình.
-- Kế hoạch v4.1 và metric/grid draft hiện khác nhau về Macro-F1, tie-break chọn
-  cấu hình và bootstrap; TV3/cả nhóm cần đồng bộ trước thực nghiệm, không sửa trong
-  giai đoạn này. README ban đầu cũng cần TV1 cập nhật trạng thái Bigram khi tích hợp.
-- Chưa chạy runtime Colab thật, chưa commit/push các thay đổi của giai đoạn này.
+- Oracle độc lập của TV1, kiểm thử chuẩn hóa và các ca biên chạy trong suite
+  của dự án. [Ghi chú tích hợp](INTEGRATION_TV1_TV2.md)
+- Trigram NumPy đã được tích hợp. Các phép đo CPU trên 100 câu dev và mức
+  dự trù cho 9 cấu hình nằm trong [tài liệu Trigram](TV2_TRIGRAM.md).
+- Metric, tie-break, lưới dev và bootstrap đã đồng bộ với kế hoạch v4.1.
+  [Quy trình đánh giá](TV3_EVALUATION_RUNBOOK.md)
+- Notebook đã chạy với kernel Jupyter sạch trên Windows. Test chính thức
+  chờ xác nhận khóa. [Biên bản](pre_register_test.md)
