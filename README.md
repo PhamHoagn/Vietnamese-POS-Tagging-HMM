@@ -220,10 +220,39 @@ API `BigramHMMTagger.from_probabilities(...)` và Trigram tương ứng chỉ n�
 xác suất cho kiểm thử, không fit hoặc smoothing lại. Decoder vẫn là cùng code
 Viterbi dùng cho model train thật. Xem [biên bản tích hợp](docs/INTEGRATION_TV1_TV2.md).
 
-Error script xuất `dev_errors.csv`, `dev_examples.csv`, `dev_error_pairs.csv`
-vào `results/tables/errors/`. Giữ token/gold/pred/OOV, thêm tên file và số dòng
-CSV để truy vết; explanation để trống cho nhóm phân tích. Ví dụ là tối đa 10
-lỗi đầu theo thứ tự CSV, không đại diện mẫu ngẫu nhiên. Không đủ lỗi thì xuất
-đúng số có thật. Chạy riêng từng CSV B0/H1/H2 với `--output-dir` khác nhau để
-không ghi đè. Script không tính lại metrics của TV3, không fit/tune model.
-Chỉ dùng `--split test` sau khi khóa cấu hình. Không tự mở corpus thật.
+Error script nhận CSV gộp `sent_id,idx,token,gold,pred_b0,pred_h1` và tùy chọn
+`pred_h2,is_oov`. Khi CSV không có `is_oov`, dùng `--train-conllu` để dựng
+vocabulary FORM nguyên gốc của train; thiếu cả hai nguồn thì script dừng thay vì
+đoán OOV. Chạy:
+
+```bash
+python -m src.error_script results/tables/predictions_dev.csv --train-conllu data/raw/TRAIN.conllu --split dev
+```
+
+Script xuất `errors_dev.csv`, `top_error_pairs_dev.csv`, `error_examples_dev.md`
+vào `results/tables/errors/`. Cặp nhầm tách theo OOV/IV và PUNCT/NON_PUNCT;
+phần trăm lấy trong đúng nhóm model × OOV × PUNCT đó. Ví dụ chọn xác định: duyệt
+các nhóm cặp theo count giảm dần rồi thứ tự khóa cố định, lấy vị trí đầu tiên chưa
+chọn của mỗi nhóm cho đến tối đa 10 ví dụ. Cửa sổ giữ ±3 token; H2 vắng hiện N/A;
+cột giải thích luôn có `[điền sau khi xem]`. Script không tính metric TV3, fit hay
+tune model. Chỉ dùng `--split test` sau khi khóa cấu hình.
+
+### Thống kê sparsity từ train
+
+```python
+from src.eda import export_sparsity
+
+export_sparsity(splits["train"], splits["dev"])
+```
+
+Hàm ghi `results/tables/sparsity.csv` với một dòng số liệu. Một token type mơ hồ
+là FORM đã xuất hiện với hơn một UPOS trong train; phần trăm tương ứng lấy số
+lượt xuất hiện của các type đó chia tổng lượt token train. Bigram/trigram được
+đếm trên chuỗi nhãn có `<s>` ở đầu và `</s>` ở cuối. Không gian khả dĩ lần lượt
+là `(|S| + 1)^2` và `(|S| + 1)^3`, với `S` là nhãn xuất hiện trong train; một
+chiều dùng `<s>`, chiều đích dùng `</s>`. Tỷ lệ bigram dev chưa thấy tính theo
+lượt transition `<s> -> y1`, các chuyển tiếp nội bộ và `yT -> </s>`.
+
+Các số liệu này chỉ mô tả sparsity, hỗ trợ giải thích vì sao Trigram có thể kém
+Bigram; chúng không chứng minh quan hệ nhân quả và không được dùng để chọn tham
+số theo test.

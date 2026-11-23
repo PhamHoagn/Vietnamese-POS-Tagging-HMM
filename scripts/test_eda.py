@@ -8,7 +8,7 @@ import pytest
 
 from src.contracts import UPOS_TAGS
 from src.data_loader import Sentence
-from src.eda import export_eda
+from src.eda import export_eda, export_sparsity
 
 
 def test_eda_counts_and_distribution(tmp_path: Path) -> None:
@@ -153,3 +153,47 @@ def test_audit_no_issues(tmp_path: Path) -> None:
         reader = csv.DictReader(stream)
         assert "issue" in reader.fieldnames
         assert list(reader) == []
+
+
+def test_sparsity_from_train_and_dev(tmp_path: Path) -> None:
+    """Đếm tay: x có 2 nhãn/3 lượt; train 6 bi/7 tri, dev có 3/6 bigram mới."""
+    train = [
+        Sentence("t1", ["x", "x"], ["NOUN", "VERB"]),
+        Sentence("t2", ["x", "y"], ["ADJ", "NOUN"]),
+        Sentence("t3", ["z"], ["NOUN"]),
+    ]
+    dev = [
+        Sentence("d1", ["a", "b"], ["NOUN", "VERB"]),
+        Sentence("d2", ["c", "d"], ["VERB", "ADJ"]),
+    ]
+    before = deepcopy((train, dev))
+    path = export_sparsity(train, dev, tmp_path / "sparsity.csv")
+    with path.open(encoding="utf-8", newline="") as stream:
+        row = next(csv.DictReader(stream))
+    assert {key: int(row[key]) for key in (
+        "train_label_count", "train_token_count", "ambiguous_token_type_count",
+        "ambiguous_token_occurrence_count", "bigram_observed_count", "bigram_possible_count",
+        "trigram_observed_count", "trigram_possible_count", "dev_bigram_transition_count",
+        "dev_unseen_bigram_transition_count",
+    )} == {
+        "train_label_count": 3, "train_token_count": 5,
+        "ambiguous_token_type_count": 1, "ambiguous_token_occurrence_count": 3,
+        "bigram_observed_count": 6, "bigram_possible_count": 16,
+        "trigram_observed_count": 7, "trigram_possible_count": 64,
+        "dev_bigram_transition_count": 6, "dev_unseen_bigram_transition_count": 3,
+    }
+    assert float(row["ambiguous_token_occurrence_percentage"]) == pytest.approx(60)
+    assert float(row["bigram_observed_percentage"]) == pytest.approx(37.5)
+    assert float(row["trigram_observed_percentage"]) == pytest.approx(10.9375)
+    assert float(row["dev_unseen_bigram_percentage"]) == pytest.approx(50)
+    assert (train, dev) == before
+
+
+def test_sparsity_empty_inputs(tmp_path: Path) -> None:
+    """Không có token thì tỷ lệ theo token/dev để trống, không chia cho 0."""
+    path = export_sparsity([], [], tmp_path / "sparsity.csv")
+    with path.open(encoding="utf-8", newline="") as stream:
+        row = next(csv.DictReader(stream))
+    assert row["bigram_possible_count"] == row["trigram_possible_count"] == "1"
+    assert row["ambiguous_token_occurrence_percentage"] == ""
+    assert row["dev_unseen_bigram_percentage"] == ""
