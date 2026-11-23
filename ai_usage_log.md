@@ -164,3 +164,12 @@
 - Slide chung 12 trang có lời dẫn 10 phút và đã được kiểm tra trong PowerPoint.
   Biểu đồ dev dùng trực tiếp CSV lưới mở rộng. TV1 đã thử audit sau khóa trên toy.
   Cấu hình test vẫn chờ nhóm xác nhận.
+
+## 2026-11-24 Kiểm tra notebook trên bản đóng gói
+
+- Manager cập nhật notebook để sinh và hiển thị hình độ nhạy theo lưới đã dùng
+  trong lần chạy dev, chỉnh README và soạn câu hỏi bảo vệ theo vai trò.
+- Kiểm lại ZIP xuất từ commit `c81f0ec` trên kernel Jupyter mới tại Windows.
+  Tải mới train/dev, tái tạo đúng nội dung 14 CSV dev, cấu hình và quy tắc chọn,
+  đồng thời hiển thị đủ bốn hình. Nhóm cần diễn tập và kiểm tra quyền truy cập
+  trên bản chia sẻ cuối.
