@@ -21,12 +21,15 @@ def evaluate_pos(
     predictions: list[list[str]],
     train_vocab: Set[str],
     labels: Sequence[str],
+    *,
+    macro_f1_gold_support: bool = False,
 ) -> POSMetrics:
     """Evaluate predictions against gold UPOS labels.
 
     OOV is determined from the raw training vocabulary (before any HMM cutoff).
     Tokens are flattened across sentences for token-level metrics. A metric whose
-    denominator is zero is defined as 0.0.
+    denominator is zero is defined as 0.0. The v4.1 protocol passes
+    macro_f1_gold_support=True to average only over labels present in gold.
     """
     validate_corpus(gold_data)
     if len(gold_data) != len(predictions):
@@ -58,11 +61,13 @@ def evaluate_pos(
     total = len(tokens_flat)
     correct = [gold == pred for gold, pred in zip(gold_flat, pred_flat)]
     token_accuracy = sum(correct) / total if total else 0.0
+    gold_labels = set(gold_flat)
+    macro_labels = [label for label in fixed_labels if label in gold_labels] if macro_f1_gold_support else fixed_labels
     macro_f1 = (
         float(f1_score(
             gold_flat,
             pred_flat,
-            labels=fixed_labels,
+            labels=macro_labels,
             average="macro",
             zero_division=0,
         ))

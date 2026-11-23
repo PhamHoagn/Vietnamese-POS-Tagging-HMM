@@ -1,7 +1,7 @@
 
 import pytest
 
-from src.model_selection import grid_search_pos
+from src.model_selection import _rank_rows, grid_search_pos
 
 
 class DummyTagger:
@@ -55,9 +55,9 @@ def test_grid_search_selects_best_dev_configuration():
     assert sum(row["selected"] for row in results) == 1
 
 
-def test_grid_search_tie_breaks_by_alpha_then_cutoff():
-    train = [(["a"], ["NOUN"])]
-    dev = [(["a"], ["NOUN"])]
+def test_grid_search_tie_breaks_by_smaller_cutoff_then_larger_alpha():
+    train = [(["known"], ["NOUN"])]
+    dev = [(["known"], ["NOUN"])]
 
     results = grid_search_pos(
         DummyTagger,
@@ -73,11 +73,35 @@ def test_grid_search_tie_breaks_by_alpha_then_cutoff():
         (row["param_alpha"], row["param_cutoff"])
         for row in results
     ] == [
-        (0.1, 0),
-        (0.1, 1),
         (0.2, 0),
+        (0.1, 0),
         (0.2, 1),
+        (0.1, 1),
     ]
+
+
+def test_accuracy_tie_prefers_macro_f1_before_parameters():
+    class TieTagger(DummyTagger):
+        def predict(self, tokens):
+            if self.alpha == 0.1:
+                return ["NOUN", "NOUN", "VERB", "VERB"]
+            return ["NOUN"] * len(tokens)
+
+    train = [(["known"], ["NOUN"])]
+    dev = [(["a", "b", "c", "d"], ["NOUN", "NOUN", "NOUN", "VERB"])]
+    rows = grid_search_pos(TieTagger, train, dev, {"alpha": [0.1, 0.2], "cutoff": [0]})
+    assert [row["param_alpha"] for row in rows] == [0.1, 0.2]
+    assert rows[0]["dev_token_accuracy"] == rows[1]["dev_token_accuracy"] == 0.75
+    assert rows[0]["dev_macro_f1"] > rows[1]["dev_macro_f1"]
+
+
+def test_macro_f1_tolerance_treats_roundoff_as_a_tie():
+    def row(alpha, cutoff, macro):
+        return dict(param_alpha=alpha, param_cutoff=cutoff, dev_score=0.75, dev_macro_f1=macro)
+
+    rows = [row(1.0, 1, 0.5), row(0.1, 0, 0.5 - 0.5e-12), row(1.0, 0, 0.5 - 2e-12)]
+    assert _rank_rows(rows) == [rows[1], rows[0], rows[2]]
+    assert _rank_rows(rows[::-1]) == _rank_rows(rows)
 
 
 def test_grid_search_supports_macro_f1_scoring():

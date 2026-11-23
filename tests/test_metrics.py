@@ -18,6 +18,16 @@ def test_hand_calculated_accuracy_and_fixed_label_macro_f1():
     assert scores["accuracy_no_punct"] == pytest.approx(2 / 3)
 
 
+def test_gold_support_macro_f1_keeps_errors_predicted_as_an_absent_tag():
+    gold = [(["x", "y"], ["NOUN", "NOUN"])]
+    predictions = [["NOUN", "VERB"]]
+    labels = ["NOUN", "VERB", "ADJ"]
+    scores = evaluate_pos(gold, predictions, set(), labels, macro_f1_gold_support=True)
+    assert scores["token_accuracy"] == 0.5
+    assert scores["macro_f1"] == pytest.approx(2 / 3)
+    assert evaluate_pos(gold, predictions, set(), labels)["macro_f1"] == pytest.approx(2 / 9)
+
+
 @pytest.mark.parametrize("gold,predicted", [([], []), ([([], [])], [[]])])
 def test_empty_evaluation(gold, predicted):
     result = evaluate_pos(gold, predicted, set(), UPOS_TAGS)

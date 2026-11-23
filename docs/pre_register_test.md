@@ -1,60 +1,52 @@
-# DRAFT — đăng ký trước đánh giá test
+# Đăng ký trước đánh giá test
 
-**CHƯA ĐƯỢC KHÓA.** Cả ba thành viên phải xác nhận và khóa bản này trước khi xem
-bất kỳ kết quả test nào. Không điền kết quả giả vào tài liệu. Các lựa chọn dưới đây
-là đề xuất cần cả nhóm duyệt, không phải những thí nghiệm đã chạy.
+**Chờ nhóm xác nhận.** Các lựa chọn dưới đây dựa trên dev và kế hoạch v4.1. Nhóm xác nhận nguồn dữ liệu, các cấu hình, chỉ số và quy tắc so sánh trước khi mở test.
 
-## Cổng xác nhận
+- [ ] TV1 xác nhận corpus, giấy phép và audit phân tách dữ liệu.
+- [ ] TV2 xác nhận hai bộ giải mã, kiểm thử oracle và ngân sách CPU.
+- [ ] TV3 xác nhận metric, quy tắc chọn cấu hình và bootstrap.
+- [ ] Ghi xác nhận chung và niêm phong hồ sơ trước đợt chạy test.
 
-- [ ] TV1 @angqun xác nhận corpus, quyền phân phối, tagset, split/checksum.
-- [ ] TV2 @PhamHoagn xác nhận smoothing, cutoff, UNK, BOS/EOS và brute-force tests.
-- [ ] TV3 @PhuongNamkk5 xác nhận metric, grid, bootstrap và quy tắc báo cáo.
-- [ ] Ghi ngày khóa, commit tài liệu, phiên bản môi trường và người xác nhận.
+## Dữ liệu
 
-Corpus/phiên bản/giấy phép: **TBD**. Train/dev/test IDs và checksum: **TBD**.
-Thời điểm khóa và commit: **TBD**. Chưa được chạy test cuối khi còn TBD quan trọng.
+UD Vietnamese VTB, CC BY-SA 4.0, commit `fa7130860b65db9db342542c51dc57badd30fa9e`. Giữ nguyên FORM (không chuẩn hóa thêm), nhãn UPOS và các split gốc.
 
-## Câu hỏi và các phép so sánh dự kiến
+| Split | Bằng chứng định danh |
+| --- | --- |
+| Train | SHA-256 `1df180722db99b724f7368aca50597133bee28606de3394cd8d12a57da89978d` |
+| Dev | SHA-256 `0b779257b9225575b3b30e15d64cc4ef9945a77f8cceb9f92d794b483a2752dd` |
+| Test | Git blob SHA-1 `29cfccf7bc782829f77d039db5d906157a747ae6`, 538.633 byte theo Git tree tại commit trên |
 
-1. Most Frequent Tag so với Bigram HMM được chọn bằng dev.
-2. Most Frequent Tag so với Trigram HMM được chọn bằng dev.
-3. Bigram so với Trigram sau lựa chọn dev độc lập, dùng cùng split và tagset.
-4. **Ablation cố định:** Bigram `alpha=0.1, cutoff=1` so với Trigram
-   `alpha=0.1, cutoff=1`; chỉ thay bậc Markov, giữ cùng định nghĩa emission,
-   preprocessing, UNK, boundary và smoothing. Không thay cặp này sau khi xem test.
-5. Phân tích phụ OOV và loại PUNCT sau khi các metric tương ứng được triển khai
-   và kiểm thử. Không coi giá trị `None` hiện tại là kết quả số.
+Hồ sơ dùng định danh Git của test để ghim nội dung trước khi lấy file. Lệnh chạy test kiểm tra bytes đúng Git blob và ghi SHA-256 trước khi parse. Tất cả mô hình học tham số và từ vựng từ train. Dev chọn cấu hình. Khi dự đoán, mỗi mô hình chỉ nhận token.
 
-## Lựa chọn bằng dev
+## Quy tắc lựa chọn trên dev
 
-Đề xuất grid `alpha in [0.01, 0.1, 1.0]`, `cutoff in [0, 1, 2]`; nhóm phải xác
-nhận chi phí CPU trước khi khóa. Huấn luyện từng cấu hình từ train, chọn bằng
-dev Token Accuracy; hòa chọn `(alpha, cutoff)` nhỏ nhất theo thứ tự từ điển.
-Không xem test để chọn grid, cấu hình, seed hoặc thay cách UNK. Nếu cấu hình lỗi,
-ghi nguyên nhân và xử lý trước khi khóa, không âm thầm bỏ sau khi xem test.
+Grid khởi đầu cho cả hai HMM gồm α ∈ {0,01, 0,1, 1,0} và cutoff ∈ {0, 1, 2}. Xếp theo Token Accuracy giảm dần, sau đó Macro-F1 giảm dần (bằng nhau trong dung sai tuyệt đối 10⁻¹²), cutoff tăng dần và α giảm dần. Lần mở rộng chung thêm α=0,001 vì Bigram đứng đầu vòng đầu ở α=0,01. Mỗi bậc có 12 cấu hình sau mở rộng.
 
-## Đánh giá cuối
+| Vai trò trên test | Cấu hình | Token Accuracy dev | Macro-F1 dev |
+| --- | --- | ---: | ---: |
+| B0 | Most Frequent Tag | 81,2438% | 64,7742% |
+| H1_best | Bigram α=0,01, cutoff=1 | 78,9389% | 67,3225% |
+| H2_best | Trigram α=0,1, cutoff=1 | 78,5949% | 65,9711% |
+| H1_fixed | Bigram α=0,1, cutoff=1 | 78,8854% | 66,4386% |
+| H2_fixed | Trigram α=0,1, cutoff=1 | 78,5949% | 65,9711% |
 
-- Primary: Token Accuracy gộp mọi token, bao gồm PUNCT.
-- Secondary: Macro-F1 trên 17 `UPOS_TAGS`, kể cả nhãn vắng, `zero_division=0`.
-- Phụ: OOV Accuracy/Rate dùng raw train vocabulary, accuracy_no_punct lọc theo
-  gold PUNCT. Báo số token tổng/OOV/không-PUNCT và quy ước mẫu số bằng 0.
-- Giữ train/dev tách biệt; model cuối vẫn fit train, không tự gộp train+dev.
-- Lưu predictions trước khi tính metric; predict chỉ nhận tokens.
-- Không dùng token của test để mở rộng vocabulary hoặc thay rare cutoff.
+H2_best và H2_fixed trùng tham số và dùng chung dự đoán. Hai mô hình fixed cùng tập nhãn train, từ vựng, cutoff, alpha và phát xạ. Lưới, điểm và phiên bản môi trường của lần chạy nằm trong [hồ sơ lựa chọn dev](../results/tables/dev/selection.json).
 
-## CI đề xuất, chưa triển khai
+Trigram đạt kiểm thử oracle, chuẩn hóa và ca biên của TV1, cùng ngưỡng benchmark CPU trên máy local. Đây là cơ sở để đưa cả H2_best và H2_fixed vào đợt test.
 
-Paired bootstrap theo **câu**, lấy lại N câu có hoàn lại từ N câu test, cùng chỉ
-số lấy mẫu cho cả hai model. Đề xuất 10.000 mẫu, seed 2026, percentile CI 95% cho
-chênh lệch Token Accuracy và Macro-F1; tính lại metric trên token gộp trong mỗi
-mẫu, giữ nguyên 17 labels. Không bootstrap token độc lập. TV3 xác nhận thời gian
-CPU và số mẫu trước khi khóa. Các CI nhiều cặp mang tính mô tả; không tuyên bố
-kiểm định đã hiệu chỉnh nhiều so sánh nếu chưa đăng ký phương pháp cụ thể.
+## Chỉ số và khoảng tin cậy
 
-## Tái lập và thay đổi protocol
+- Chỉ số chính là Token Accuracy theo token có tính PUNCT.
+- Macro-F1 dùng các nhãn UPOS có gold support trong split đang đánh giá, `zero_division=0`. Bảng per-tag và confusion matrix luôn theo thứ tự đủ 17 UPOS.
+- OOV được xác định từ FORM vắng trong từ vựng gốc của train. Accuracy không tính dấu câu lọc bằng nhãn gold PUNCT. Metric có mẫu số bằng 0 trả 0,0.
+- Paired sentence bootstrap cho **H1_best − B0**, **H2_best − H1_best** và **H2_fixed − H1_fixed**. Dùng các chỉ số câu giống nhau cho mọi cấu hình trong mỗi lần lấy mẫu, lấy lại N câu có hoàn lại, rồi cộng số token đúng và tổng token trước khi chia. Dùng 2.000 lần lấy mẫu, seed 42, phân vị 2,5% và 97,5% của chênh lệch Token Accuracy.
+- Hồ sơ test giữ hash dự đoán, hash các bảng tổng hợp và phiên bản môi trường. Dữ liệu gốc, dự đoán từng token và văn bản ví dụ lỗi nằm trong thư mục local.
 
-Lưu cấu hình, seed, thời gian CPU, package versions, split checksum và Git commit
-cho từng lần chạy. Không có bảng kết quả thực nghiệm trong bản nháp này.
-Nếu cần sửa sau khi khóa, ghi ngày, lý do, người duyệt và đã xem test hay chưa;
-phân tích phát sinh sau khi xem test phải được ghi là exploratory.
+## Trình tự thực hiện
+
+1. `python -m scripts.final_experiment prepare --selection results/tables/dev/selection.json --output results/tables/final_candidate.json` sau khi commit code thực nghiệm. Hồ sơ chứa commit code, hash script và định danh dữ liệu.
+2. Cả nhóm duyệt bảng cấu hình và hồ sơ. Sau xác nhận, tạo `results/tables/final_lock.json` bằng lệnh `seal` và ghi tham chiếu xác nhận.
+3. Chạy `python -m scripts.final_experiment run --lock results/tables/final_lock.json --data-dir data/raw/ud-vtb-fa7130860b65 --private-dir .venv/project-runs/test --summary-dir results/tables/test` từ commit đã duyệt. Thay `--data-dir` theo nơi lưu train/dev đã xác minh trên máy đang chạy.
+
+Mọi thay đổi protocol sau khi xem kết quả test cần ghi rõ thời điểm và lý do, và được tách khỏi phân tích đã đăng ký.

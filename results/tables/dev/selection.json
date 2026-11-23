@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "source_commit": "fa7130860b65db9db342542c51dc57badd30fa9e",
+    "train": {
+      "sha256": "1df180722db99b724f7368aca50597133bee28606de3394cd8d12a57da89978d",
+      "sentences": 1400,
+      "tokens": 20215
+    },
+    "dev": {
+      "sha256": "0b779257b9225575b3b30e15d64cc4ef9945a77f8cceb9f92d794b483a2752dd",
+      "sentences": 1123,
+      "tokens": 26162
+    }
+  },
+  "protocol": {
+    "name": "v4.1",
+    "selection": "dev_token_accuracy_desc, dev_macro_f1_desc, cutoff_asc, alpha_desc",
+    "macro_f1_scope": "gold_support",
+    "macro_f1_tolerance": 1e-12,
+    "initial_grid": {
+      "alpha": [
+        0.01,
+        0.1,
+        1.0
+      ],
+      "cutoff": [
+        0,
+        1,
+        2
+      ]
+    },
+    "expanded_grid": {
+      "alpha": [
+        0.001,
+        0.01,
+        0.1,
+        1.0
+      ],
+      "cutoff": [
+        0,
+        1,
+        2
+      ]
+    },
+    "expansion_triggers": [
+      "alpha_low"
+    ],
+    "initial_winners": {
+      "bigram": {
+        "alpha": 0.01,
+        "cutoff": 1
+      },
+      "trigram": {
+        "alpha": 0.1,
+        "cutoff": 1
+      }
+    },
+    "fixed_params": {
+      "alpha": 0.1,
+      "cutoff": 1
+    },
+    "token_normalization": "preserve_FORM"
+  },
+  "environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.5",
+    "sklearn": "1.9.1"
+  },
+  "models": {
+    "b0": {
+      "kind": "baseline",
+      "params": {},
+      "metrics": {
+        "token_accuracy": 0.8124378870116964,
+        "macro_f1": 0.647742139922673,
+        "oov_accuracy": 0.43735763097949887,
+        "oov_rate": 0.18458068954972862,
+        "accuracy_no_punct": 0.7906822698167366
+      }
+    },
+    "h1_best": {
+      "kind": "bigram",
+      "params": {
+        "alpha": 0.01,
+        "cutoff": 1
+      },
+      "metrics": {
+        "token_accuracy": 0.7893891904288663,
+        "macro_f1": 0.6732245643670969,
+        "oov_accuracy": 0.4102298612549182,
+        "oov_rate": 0.18458068954972862,
+        "accuracy_no_punct": 0.7647604327666151
+      }
+    },
+    "h2_best": {
+      "kind": "trigram",
+      "params": {
+        "alpha": 0.1,
+        "cutoff": 1
+      },
+      "metrics": {
+        "token_accuracy": 0.7859490864612797,
+        "macro_f1": 0.659710944709078,
+        "oov_accuracy": 0.42472561606957965,
+        "oov_rate": 0.18458068954972862,
+        "accuracy_no_punct": 0.7604769264738352
+      }
+    },
+    "h1_fixed": {
+      "kind": "bigram",
+      "params": {
+        "alpha": 0.1,
+        "cutoff": 1
+      },
+      "metrics": {
+        "token_accuracy": 0.7888540631450195,
+        "macro_f1": 0.6643855958221304,
+        "oov_accuracy": 0.408366121350176,
+        "oov_rate": 0.18458068954972862,
+        "accuracy_no_punct": 0.7636564362994038
+      }
+    },
+    "h2_fixed": {
+      "kind": "trigram",
+      "params": {
+        "alpha": 0.1,
+        "cutoff": 1
+      },
+      "metrics": {
+        "token_accuracy": 0.7859490864612797,
+        "macro_f1": 0.659710944709078,
+        "oov_accuracy": 0.42472561606957965,
+        "oov_rate": 0.18458068954972862,
+        "accuracy_no_punct": 0.7604769264738352
+      }
+    }
+  },
+  "ablation_h2_minus_h1": {
+    "token_accuracy": -0.0029049766837397906,
+    "macro_f1": -0.00467465111305243,
+    "oov_accuracy": 0.016359494719403622,
+    "oov_rate": 0.0,
+    "accuracy_no_punct": -0.0031795098255685827
+  }
+}
