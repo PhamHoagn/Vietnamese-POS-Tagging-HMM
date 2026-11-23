@@ -24,7 +24,8 @@ src/
   hmm_bigram.py         # Bigram HMM + Viterbi đã triển khai
   hmm_trigram.py        # Trigram HMM + Viterbi NumPy đã triển khai
   metrics.py            # 2 metric hoàn chỉnh, 3 metric dự phòng
-  model_selection.py    # interface grid search, placeholder
+  model_selection.py    # grid search train/dev
+  bootstrap.py          # paired sentence bootstrap cho chênh lệch accuracy
 tests/
   test_data_loader.py
   test_baseline.py
@@ -149,27 +150,28 @@ evaluate_pos(
     predictions: list[list[str]],
     train_vocab: collections.abc.Set[str],
     labels: collections.abc.Sequence[str],
+    *,
+    macro_f1_gold_support: bool = False,
 ) -> POSMetrics
 ```
 
 Số câu và số dự đoán mỗi câu phải khớp gold; lỗi gây `ValueError`. `labels` phải
 khác rỗng, không trùng, là UPOS hợp lệ và chứa tất cả gold/predicted tags.
-Dùng `UPOS_TAGS` cố định cho mọi phép so sánh chính, không suy ra labels từ test.
+Pipeline v4.1 dùng `UPOS_TAGS` làm không gian nhãn cố định và truyền
+`macro_f1_gold_support=True` để lấy trung bình trên các nhãn có gold support.
 `train_vocab` nhận tập FORM nguyên gốc học từ train; evaluation không thể tự chứng
 minh nguồn gốc tập này, người gọi chịu trách nhiệm chống leakage.
 
 | Key | Trạng thái | Định nghĩa |
 | --- | --- | --- |
 | `token_accuracy` | Đã chạy | Tổng token đúng / tổng token, gộp mọi câu |
-| `macro_f1` | Đã chạy | `f1_score(..., labels=labels, average="macro", zero_division=0)` |
-| `oov_accuracy` | Chưa triển khai, trả `None` | Dự kiến: tỷ lệ đúng trên FORM không thuộc raw train_vocab |
-| `oov_rate` | Chưa triển khai, trả `None` | Dự kiến: số token OOV / tổng token |
-| `accuracy_no_punct` | Chưa triển khai, trả `None` | Dự kiến: accuracy trên token có gold UPOS khác PUNCT |
+| `macro_f1` | Đã chạy | Trung bình F1 theo tập nhãn của giao thức, `zero_division=0` |
+| `oov_accuracy` | Đã chạy | Tỷ lệ đúng trên FORM không thuộc raw train_vocab |
+| `oov_rate` | Đã chạy | Số token OOV / tổng token |
+| `accuracy_no_punct` | Đã chạy | Accuracy trên token có gold UPOS khác PUNCT |
 
-Các tag vắng ở cả gold/prediction vẫn đóng góp F1=0 trong macro theo labels cố định.
-Evaluation rỗng trả 0.0 cho hai metric đã làm; ba metric chưa làm vẫn `None`.
-Khi hoàn thiện metric OOV/no-punct, quy ước mẫu số bằng 0 trả 0.0 và báo số lượng
-token tương ứng trong báo cáo để không diễn giải nhầm là chất lượng kém.
+Chế độ mặc định của API vẫn lấy trung bình trên toàn bộ `labels`. Evaluation rỗng
+hoặc mẫu số OOV/no-PUNCT bằng 0 trả 0.0 cho metric tương ứng.
 
 `predict` chỉ nhận `tokens`; gold chỉ được đưa vào evaluation sau khi đã có
 predictions. Không dùng gold để xử lý UNK hoặc chọn đường đi Viterbi.
@@ -188,15 +190,15 @@ grid_search_pos(
 ) -> list[dict[str, Any]]
 ```
 
-Hiện luôn gây `NotImplementedError`. Hành vi tương lai cần giữ:
+Hành vi:
 
 1. Duyệt tích Descartes của grid, tạo model mới cho mỗi cấu hình.
 2. Chỉ `fit(train_data)`, predict dev bằng tokens, chấm bằng dev gold.
 3. Trả bảng phẳng, mỗi cấu hình một dòng, có `param_<name>`,
    `dev_token_accuracy`, `dev_macro_f1`, `rank` (bắt đầu 1), `selected` (bool).
-   Dùng `csv.DictWriter` để lưu, không bắt buộc pandas. Metric chưa làm bỏ khỏi bảng.
-4. Chọn score dev cao nhất; hòa điểm dùng cặp `(alpha, cutoff)` tăng dần cho grid
-   HMM hiện tại. Chỉ dùng metric đã triển khai làm scoring; chọn metric `None` phải lỗi.
+   `scripts.evaluate_dev` ghi bảng bằng `csv.DictWriter`.
+4. Pipeline v4.1 xếp theo Token Accuracy, Macro-F1, cutoff thấp rồi alpha cao.
+   Sai số hòa Macro-F1 là 1e-12 trong cùng nhóm Token Accuracy.
 5. Không nhận `test_data`, không đọc file test, không refit train+dev tự động.
    Grid/scoring/tie-break phải được khóa trước đánh giá test.
 
@@ -308,12 +310,12 @@ Chỉ cần CPU; chưa xác minh bằng một runtime Colab thật trong bước
 | --- | --- |
 | CoNLL-U FORM/UPOS parser + fixture | Hoàn chỉnh trong phạm vi đã nêu |
 | Most Frequent Tag, fallback, tie-break | Hoàn chỉnh |
-| Token Accuracy, fixed-label Macro-F1 | Hoàn chỉnh |
-| OOV Accuracy/Rate, accuracy_no_punct | Chưa làm; trả `None` |
+| Token Accuracy, Macro-F1, OOV Accuracy/Rate, accuracy_no_punct | Đã triển khai và chạy trên dev |
 | Bigram training, Viterbi NumPy, UNK, log_joint, config/cache | Đã triển khai; xem TV2_BIGRAM.md |
 | Trigram training, Viterbi NumPy và benchmark CPU dev | Đã triển khai; xem TV2_TRIGRAM.md và results/tables/bench_dev.csv |
-| Grid search | Chỉ signature/tài liệu; `NotImplementedError` |
-| Bootstrap CI, EDA, corpus thật, thực nghiệm, báo cáo | Chưa làm |
+| Grid search | Đã chạy trên dev, có bảng đầy đủ và lựa chọn cấu hình |
+| EDA và audit | Có kết quả train/dev từ corpus đã ghim |
+| Bootstrap CI | Đã có code và kiểm thử; dùng trong đợt test đã khóa |
 | Unit test và smoke test | Đã chạy thành công trên Windows local, xem bên dưới |
 
 ### Kiểm chứng khung ban đầu ngày 2026-11-20

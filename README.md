@@ -1,8 +1,8 @@
 # Vietnamese-POS-Tagging-HMM
 
-Khung dự án gán nhãn UPOS tiếng Việt bằng baseline Most Frequent Tag và HMM
-Bigram/Trigram. Parser, baseline, hai HMM/Viterbi NumPy, Token Accuracy và Macro-F1
-đã có code. Các metric còn lại và grid search vẫn là placeholder.
+Dự án gán nhãn UPOS tiếng Việt bằng baseline Most Frequent Tag và HMM Bigram, Trigram.
+Pipeline gồm parser CoNLL-U, Viterbi NumPy, năm chỉ số đánh giá, grid search trên
+dev và bootstrap theo câu cho đợt đánh giá đã khóa cấu hình.
 
 Python **3.11 trở lên**, CPU; không cần GPU hoặc dataset thật để kiểm tra kết nối.
 Chạy các lệnh từ thư mục gốc repository.
@@ -18,30 +18,43 @@ python -m venv .venv
 
 ## Chạy trên Google Colab CPU
 
-Sau khi các thay đổi đã được nhóm review và đưa lên remote, clone branch chứa
-khung dự án. Không chạy `git clone` lại nếu đã có checkout trong notebook.
+Mở [NLP_POS.ipynb](notebooks/NLP_POS.ipynb) trong bản checkout chứa toàn bộ dự án.
+Notebook chạy từ thư mục gốc repo và dùng CPU. Trên Colab, có thể tải bản ZIP của
+checkout hoặc clone nhánh chứa thay đổi sau khi nhóm đưa nhánh đó lên remote.
 
 ```python
-!git clone --branch main https://github.com/PhamHoagn/Vietnamese-POS-Tagging-HMM.git
-%cd Vietnamese-POS-Tagging-HMM
 !python -m pip install -r requirements.txt
 !python -m pytest -q
 !python -m scripts.smoke_test
 ```
 
-Khi chưa push, có thể tải bản ZIP của checkout local lên Colab, giải nén và `%cd`
-vào thư mục chứa `requirements.txt`, sau đó chạy ba lệnh cuối. Notebook import
-bằng `from src...`; không thêm đường dẫn máy cá nhân vào `sys.path` và không chạy
-trực tiếp `python src/<module>.py`.
+Trong Colab, giải nén hoặc clone rồi `%cd` vào thư mục chứa `requirements.txt`.
+Notebook import bằng `from src...` và các script chạy bằng `python -m`.
 
 Smoke test chỉ dùng fixture tự tạo trong `tests/fixtures/tiny.conllu` với toy
 train/dev; số in ra dùng để kiểm tra kết nối, không phải kết quả thực nghiệm.
 
 - [API Contract và phân công](docs/PROJECT_CONTRACT.md)
-- [Bản nháp đăng ký trước đánh giá test](docs/pre_register_test.md)
+- [Audit dữ liệu và phân tích lỗi dev](docs/TV1_DATA.md)
+- [Giải tay Viterbi và demo](docs/TV2_GIAI_TAY_VITERBI.md)
+- [Grid và kết quả dev](docs/TV3_EVALUATION_RUNBOOK.md)
+- [Đăng ký trước đánh giá test](docs/pre_register_test.md)
 
 Không đưa corpus gốc vào Git trước khi xác nhận giấy phép. Thư mục `data/raw/`
 được ignore, ngoại trừ `.gitkeep`.
+
+## Tái lập dữ liệu và thực nghiệm dev
+
+```sh
+python -m scripts.prepare_tv1 --download
+python -m scripts.evaluate_dev --data data/raw/ud-vtb-fa7130860b65
+python -m scripts.prepare_tv1 --dev-predictions .venv/project-runs/dev/predictions_dev.csv
+python -m scripts.demo_tv2
+```
+
+Grid so sánh trên dev và ghi bảng vào `results/tables/dev/`. Dự đoán chứa FORM
+corpus lưu trong `.venv/project-runs/dev/`. Cách ghi xác nhận của nhóm và chạy
+đánh giá cuối nằm trong [hồ sơ đăng ký](docs/pre_register_test.md).
 
 ## Đọc CoNLL-U (TV1)
 
