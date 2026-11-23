@@ -25,10 +25,10 @@ FIXED = {"alpha": 0.1, "cutoff": 1}
 BOOTSTRAP = {"replicates": 2000, "seed": 42, "confidence": 0.95}
 COMPARISONS = (("h1_best", "b0"), ("h2_best", "h1_best"), ("h2_fixed", "h1_fixed"))
 CODE_PATHS = (
-    "requirements.txt", "scripts/evaluate_dev.py", "scripts/final_experiment.py",
-    "src/baseline.py", "src/bootstrap.py", "src/contracts.py", "src/data_loader.py",
-    "src/evaluation_outputs.py", "src/hmm_bigram.py", "src/hmm_common.py",
-    "src/hmm_trigram.py", "src/metrics.py", "src/model_selection.py",
+    "requirements.txt", "scripts/__init__.py", "scripts/evaluate_dev.py", "scripts/final_experiment.py",
+    "src/__init__.py", "src/baseline.py", "src/bootstrap.py", "src/contracts.py", "src/data_loader.py",
+    "src/error_script.py", "src/evaluation_outputs.py", "src/hmm_bigram.py", "src/hmm_common.py",
+    "src/hmm_tables.py", "src/hmm_trigram.py", "src/metrics.py", "src/model_selection.py",
 )
 
 
