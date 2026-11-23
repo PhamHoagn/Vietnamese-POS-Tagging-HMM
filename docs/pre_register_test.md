@@ -42,6 +42,7 @@ Trigram đạt kiểm thử oracle, chuẩn hóa và ca biên của TV1, cùng n
 - OOV được xác định từ FORM vắng trong từ vựng gốc của train. Accuracy không tính dấu câu lọc bằng nhãn gold PUNCT. Metric có mẫu số bằng 0 trả 0,0.
 - Paired sentence bootstrap cho **H1_best − B0**, **H2_best − H1_best** và **H2_fixed − H1_fixed**. Dùng các chỉ số câu giống nhau cho mọi cấu hình trong mỗi lần lấy mẫu, lấy lại N câu có hoàn lại, rồi cộng số token đúng và tổng token trước khi chia. Dùng 2.000 lần lấy mẫu, seed 42, phân vị 2,5% và 97,5% của chênh lệch Token Accuracy.
 - Hồ sơ test giữ hash dự đoán, hash các bảng tổng hợp và phiên bản môi trường. Dữ liệu gốc, dự đoán từng token và văn bản ví dụ lỗi nằm trong thư mục local.
+- SHA-256 của hồ sơ dev trong ứng viên dùng văn bản UTF-8 với xuống dòng LF. Các hash file dữ liệu và CSV Test dùng byte nguyên gốc của lần chạy.
 
 ## Trình tự thực hiện
 

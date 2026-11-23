@@ -98,8 +98,8 @@ def _model_configs(selection: dict) -> dict:
 
 def prepare(selection_path: Path, output: Path) -> dict:
     """Record the reviewed dev selection and pinned test identity from Git metadata."""
-    selected_bytes = selection_path.read_bytes()
-    selected = json.loads(selected_bytes)
+    selected_text = selection_path.read_text(encoding="utf-8")
+    selected = json.loads(selected_text)
     if selected["schema_version"] != 1:
         raise ValueError("Unsupported dev selection schema.")
     dataset = selected["dataset"]
@@ -115,7 +115,7 @@ def prepare(selection_path: Path, output: Path) -> dict:
             "test_git_blob_sha1": TEST_GIT_BLOB, "test_size_bytes": TEST_SIZE,
         },
         "models": _model_configs(selected),
-        "dev_selection_sha256": _sha256(selected_bytes),
+        "dev_selection_sha256": _sha256(selected_text.encode("utf-8")),
         "dev_protocol": selected["protocol"],
         "dev_environment": selected.get("environment", {}),
         "code_commit": _code_commit(),

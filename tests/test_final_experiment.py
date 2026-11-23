@@ -48,6 +48,14 @@ def test_unsealed_candidate_cannot_open_test(sealed, tmp_path, monkeypatch):
         final.run_locked(candidate, tmp_path, tmp_path / "private", tmp_path / "summary")
 
 
+def test_selection_digest_is_stable_across_git_line_endings(sealed, tmp_path):
+    selection = tmp_path / "selection.json"
+    data = json.dumps(_selection(), indent=2).encode("utf-8")
+    selection.write_bytes(data.replace(b"\n", b"\r\n"))
+    candidate = final.prepare(selection, tmp_path / "windows_candidate.json")
+    assert candidate["dev_selection_sha256"] == final._sha256(data)
+
+
 def test_sealed_configuration_cannot_be_replaced_or_run_with_code_drift(sealed, monkeypatch):
     _, lock_path = sealed
     initial = lock_path.read_text(encoding="utf-8")
