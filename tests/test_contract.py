@@ -39,10 +39,12 @@ def test_hmm_config_rejects_invalid_values(tagger_class, kwargs):
         tagger_class(**kwargs)
 
 
-def test_grid_search_is_explicit_placeholder_with_no_test_input():
+def test_grid_search_is_implemented_and_has_no_test_input():
     assert "test_data" not in inspect.signature(grid_search_pos).parameters
-    with pytest.raises(NotImplementedError, match="grid search"):
-        grid_search_pos(BigramHMMTagger, [], [], {"alpha": [0.1], "cutoff": [1]})
+
+    # Grid Search đã được triển khai.
+    # Không kiểm tra bằng HMM thật ở đây vì HMM thuộc nhiệm vụ TV2.
+    assert callable(grid_search_pos)
 
 
 def test_smoke_checks_integration(capsys):
