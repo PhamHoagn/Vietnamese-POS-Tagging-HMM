@@ -110,3 +110,30 @@
   trước tích hợp đã được xử lý, không che bằng skip/XFAIL.
 - Chỉ hoàn tất merge commit trên feature sau khi kiểm thử đạt. Không merge main,
   không push; chưa dùng test corpus thật, chưa làm phần metrics/grid/CI của TV3.
+
+## 2026-11-23 Nghiệm thu và bàn giao TV2
+
+- Rà lại Bigram/Trigram, trường hợp 1 token, EOS, UNK, chuẩn hóa và cache qua toàn bộ
+  suite của nhánh `feature/hmm-viterbi`. Kết quả **875 tests và 3 subtests đạt**,
+  smoke test đạt. Không phát hiện lỗi decoder cần sửa trong lần nghiệm thu.
+- Đo lại benchmark bằng `scripts/benchmark_hmm.py` trên 100 câu dev, 2.357 token,
+  3 lần decode mỗi cấu hình. Dự phóng 9 cấu hình sau hệ số 1,5 lần là 3,62 giây
+  (Bigram) và 13,75 giây (Trigram), đều dưới ngân sách 90 phút trên máy local.
+  Bản ghi lần chạy lại lưu ở `.venv/tv2-final/bench_dev.csv` và JSON cùng tên.
+- Tạo `report/TV2_Phuong_phap_HMM.docx`, bản nháp 2 trang có phương trình Word
+  chỉnh sửa được, và `docs/TV2_GIAI_TAY_VITERBI.md` với diễn giải 3 token, kịch bản
+  demo, phản biện và cách dùng model factory với cache. Đối chiếu bảng phân số
+  với nhãn và `log_joint` từ code. Giữa hai lần xuất Word, bỏ đường kẻ mặc định
+  ở Title và sửa cách diễn đạt xác suất đồng thời. Kiểm tra ảnh cả hai trang sau
+  lần xuất cuối. Renderer của skill thiếu LibreOffice trên Windows, nên dùng
+  Word để xuất PDF và chuyển PDF sang ảnh để kiểm tra bố cục.
+- Tạo `scripts/demo_tv2.py`, đã chạy để kiểm chứng luồng đọc fixture, fit hai câu
+  train và hiển thị Gold/B0/Bigram/Trigram/OOV cho câu giữ lại. Lệnh cài, chạy demo,
+  kiểm thử và smoke nằm trong tài liệu giải tay, lệnh lấy train/dev và benchmark
+  nằm trong `docs/TV2_TRIGRAM.md`.
+- Phần thảo luận dùng kết quả dev cố định đã đo để minh họa chênh lệch H2−H1.
+  Độ thưa lịch sử chỉ là giả thuyết cần đối chiếu. Kết quả test, CI, chọn cấu hình
+  cuối và số liệu báo cáo chung thuộc đợt thực nghiệm do nhóm chốt.
+- TV2 tự luyện giải ô `(V,V)` ở token thứ ba và truy ngược `N V V`, giải thích tại
+  sao mẫu số gồm EOS, vì sao UNK có xác suất dương khi cutoff bằng 0 và cách phối
+  hợp cache với grid của TV3. Đã xác minh trên Windows CPU, Colab chưa chạy trực tiếp.
