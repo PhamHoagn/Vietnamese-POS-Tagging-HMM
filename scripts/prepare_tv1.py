@@ -86,19 +86,27 @@ def source_counts(path: Path, sentences: list[Sentence]) -> dict[str, int]:
     }
 
 
-def check_dev_predictions(path: Path, dev: list[Sentence]) -> None:
+def check_predictions(path: Path, sentences: list[Sentence], *, split: str) -> None:
     """Xác nhận tệp dự đoán dùng đúng thứ tự câu/token và gold đã ghim."""
     with path.open(encoding="utf-8-sig", newline="") as stream:
         reader = csv.DictReader(stream)
-        for sentence in dev:
+        for sentence in sentences:
             for index, (token, tag) in enumerate(zip(sentence.tokens, sentence.tags, strict=True)):
                 row = next(reader, None)
                 if row is None or (row.get("sent_id"), row.get("idx"), row.get("token"), row.get("gold")) != (
                     sentence.sent_id or "", str(index), token, tag,
                 ):
-                    raise ValueError(f"Dự đoán dev lệch dữ liệu tại {sentence.sent_id}/{index}.")
+                    raise ValueError(f"Dự đoán {split} lệch dữ liệu tại {sentence.sent_id}/{index}.")
         if next(reader, None) is not None:
-            raise ValueError("Dự đoán dev có hàng thừa.")
+            raise ValueError(f"Dự đoán {split} có hàng thừa.")
+
+
+def duplicate_pairs(path: Path) -> dict[str, int]:
+    with path.open(encoding="utf-8", newline="") as stream:
+        return dict(Counter(
+            f"{row['split_a']}/{row['split_b']}" for row in csv.DictReader(stream)
+            if row["issue"] in ("duplicate_within", "duplicate_cross")
+        ))
 
 
 def prepare(
@@ -138,15 +146,11 @@ def prepare(
         splits[split] = sentences
 
     if predictions is not None:
-        check_dev_predictions(predictions, splits["dev"])
+        check_predictions(predictions, splits["dev"], split="dev")
 
     export_eda(splits, tables_dir, split_order=SPLITS)
     duplicate_path = audit_splits(splits, tables_dir, split_order=SPLITS, include_tokens=False)
-    with duplicate_path.open(encoding="utf-8", newline="") as stream:
-        manifest["duplicate_pairs"] = dict(Counter(
-            f"{row['split_a']}/{row['split_b']}" for row in csv.DictReader(stream)
-            if row["issue"] in ("duplicate_within", "duplicate_cross")
-        ))
+    manifest["duplicate_pairs"] = duplicate_pairs(duplicate_path)
     export_sparsity(splits["train"], splits["dev"], tables_dir / "sparsity.csv")
     make_figures(tables_dir, figures_dir, splits=SPLITS)
     if predictions is not None:

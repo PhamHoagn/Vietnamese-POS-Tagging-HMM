@@ -8,16 +8,24 @@ Từ thư mục gốc dự án, có thể tải hai tệp đã ghim vào `data/r
 
 ```sh
 python -m pip install -r requirements.txt
-python -m scripts.prepare_tv1 --download
+python -X utf8 -m scripts.prepare_tv1 --download
 ```
 
 Nếu đã có dữ liệu local, truyền `--data-dir` để chạy ngoại tuyến. Sau khi có CSV dự đoán dev tổng hợp, dùng cùng lệnh và thêm `--dev-predictions`. Script kiểm đủ từng dòng qua `sent_id`, `idx`, FORM và nhãn vàng trước khi đếm lỗi. CSV dự đoán chứa token corpus nên lưu trong thư mục Git bỏ qua, ví dụ `.venv/project-runs/dev`.
 
 ```sh
-python -m scripts.prepare_tv1 --data-dir data/raw/ud-vtb-fa7130860b65 --dev-predictions .venv/project-runs/dev/predictions_dev.csv
+python -X utf8 -m scripts.prepare_tv1 --data-dir data/raw/ud-vtb-fa7130860b65 --dev-predictions .venv/project-runs/dev/predictions_dev.csv
 ```
 
 Notebook [NLP_POS.ipynb](../notebooks/NLP_POS.ipynb) chạy demo, grid dev, EDA, kiểm tra căn chỉnh dự đoán và hiển thị kết quả. Cell markdown cuối mô tả cách chạy đánh giá test sau khi nhóm khóa cấu hình.
+
+Sau khi nhóm khóa cấu hình và `scripts.final_experiment run` hoàn tất, audit test dùng cùng `lock.json`, `run_metadata.json`, thư mục dữ liệu và CSV dự đoán nguyên gốc của lần chạy. Audit đối chiếu Git blob, SHA-256 và từng hàng dự đoán trước khi tạo bảng và hình tổng hợp cho cả ba split. Ví dụ lỗi chi tiết có FORM nằm trong thư mục riêng do `scripts.final_experiment run` tạo.
+
+```sh
+python -X utf8 -m scripts.audit_final_tv1 --lock results/tables/final_lock.json --run-metadata results/tables/test/run_metadata.json --data-dir data/raw/ud-vtb-fa7130860b65 --predictions .venv/project-runs/test/predictions_test.csv
+```
+
+Thay các đường dẫn ví dụ bằng đường dẫn của lần chạy đã khóa. Bảng tổng hợp mặc định ở `results/tables/tv1/final` và hình ở `results/figures/tv1/final`.
 
 ## Kiểm tra dữ liệu train và dev
 

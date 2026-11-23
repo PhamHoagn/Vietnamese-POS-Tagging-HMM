@@ -34,6 +34,18 @@ Lưới ban đầu là α ∈ {0,01; 0,1; 1} và cutoff ∈ {0, 1, 2}. Nếu c�
 của một trong hai mô hình chạm α thấp, α cao hoặc cutoff cao thì thêm lần lượt
 0,001, 3 hoặc cutoff 3. Cả hai mô hình dùng cùng lưới mở rộng.
 
+[Biểu đồ độ nhạy](../results/figures/dev/grid_sensitivity.png) dùng lưới mở rộng
+12 cấu hình mỗi bậc. Bigram chạm biên α thấp ở vòng đầu. Sau khi thêm α=0,001
+cho cả hai bậc, Bigram vẫn chọn α=0,01, cutoff=1 và Trigram chọn α=0,1,
+cutoff=1. Vòng tròn đánh dấu các cấu hình được chọn.
+
+```sh
+python -m scripts.plot_dev_grid
+```
+
+Nếu lần chạy dev chỉ có lưới khởi đầu, thêm
+`--grid results/tables/dev/grid_initial_dev.csv`.
+
 Bootstrap trong `src/bootstrap.py` dùng cùng mẫu câu có hoàn lại cho mỗi cặp,
 gom token rồi tính chênh lệch accuracy và lấy phân vị 2,5% và 97,5% trên 2.000
 lần lấy mẫu với seed 42. Ba chênh lệch đã định nghĩa là Bigram tốt nhất trừ

@@ -1,9 +1,9 @@
 # Đăng ký trước đánh giá test
 
-**Chờ nhóm xác nhận.** Các lựa chọn dưới đây dựa trên dev và kế hoạch v4.1. Nhóm xác nhận nguồn dữ liệu, các cấu hình, chỉ số và quy tắc so sánh trước khi mở test.
+**Chờ xác nhận khóa.** Các lựa chọn dưới đây dựa trên dev và kế hoạch v4.1. TV1 và TV3 ghi xác nhận phạm vi Test theo Phụ lục A trước khi mở Test.
 
 - [ ] TV1 xác nhận corpus, giấy phép và audit phân tách dữ liệu.
-- [ ] TV2 xác nhận hai bộ giải mã, kiểm thử oracle và ngân sách CPU.
+- [x] TV2 đối chiếu hai bộ giải mã, kiểm thử oracle và ngân sách CPU.
 - [ ] TV3 xác nhận metric, quy tắc chọn cấu hình và bootstrap.
 - [ ] Ghi xác nhận chung và niêm phong hồ sơ trước đợt chạy test.
 
@@ -46,7 +46,7 @@ Trigram đạt kiểm thử oracle, chuẩn hóa và ca biên của TV1, cùng n
 ## Trình tự thực hiện
 
 1. `python -m scripts.final_experiment prepare --selection results/tables/dev/selection.json --output results/tables/final_candidate.json` sau khi commit code thực nghiệm. Hồ sơ chứa commit code, hash script và định danh dữ liệu.
-2. Cả nhóm duyệt bảng cấu hình và hồ sơ. Sau xác nhận, chạy `python -m scripts.final_experiment seal --candidate results/tables/final_candidate.json --confirmation "THAM_CHIEU_XAC_NHAN_CUA_NHOM" --output results/tables/final_lock.json` và thay tham chiếu bằng xác nhận thực tế của nhóm.
+2. TV1 và TV3 duyệt bảng cấu hình và ghi xác nhận khóa. Sau xác nhận, chạy `python -m scripts.final_experiment seal --candidate results/tables/final_candidate.json --confirmation "THAM_CHIEU_XAC_NHAN_CUA_NHOM" --output results/tables/final_lock.json` và thay tham chiếu bằng xác nhận thực tế.
 3. Chạy `python -m scripts.final_experiment run --lock results/tables/final_lock.json --data-dir data/raw/ud-vtb-fa7130860b65 --private-dir .venv/project-runs/test --summary-dir results/tables/test` từ commit đã duyệt. Thay `--data-dir` theo nơi lưu train/dev đã xác minh trên máy đang chạy.
 
 Mọi thay đổi protocol sau khi xem kết quả test cần ghi rõ thời điểm và lý do, và được tách khỏi phân tích đã đăng ký.

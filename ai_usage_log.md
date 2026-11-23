@@ -137,3 +137,29 @@
 - TV2 tự luyện giải ô `(V,V)` ở token thứ ba và truy ngược `N V V`, giải thích tại
   sao mẫu số gồm EOS, vì sao UNK có xác suất dương khi cutoff bằng 0 và cách phối
   hợp cache với grid của TV3. Đã xác minh trên Windows CPU, Colab chưa chạy trực tiếp.
+
+## 2026-11-23 Điều phối tích hợp và thực nghiệm dev
+
+- Manager tích hợp TV1 `8720c6c` và TV3 `7f003cd` vào `feature/hmm-viterbi` sau khi
+  lưu Phương pháp và demo TV2. Bản báo cáo TV3 giữ nguyên nội dung của tác giả ở
+  `7f003cd`.
+- Agent TV1 tái lập audit, bảng và hình train/dev từ UD Vietnamese-VTB đã ghim,
+  kiểm tra căn chỉnh 26.162 dòng dự đoán dev, diễn giải 10 ví dụ theo ID và kiểm tra
+  toàn bộ notebook bằng một kernel mới. Corpus và dự đoán chứa FORM lưu local.
+- Agent TV2 hoàn thiện slide HMM, lời dẫn và sửa lỗi mã hóa đầu ra demo khi Windows
+  dùng cp1252. Slide trình bày cả truy vết toy, độ thưa và cách đo tốc độ.
+- Agent TV3 chốt quy ước dev v4.1, chạy đủ 9+9 rồi mở rộng đến 12+12 khi Bigram
+  chạm biên alpha thấp, xuất metric, per-tag, confusion matrix và bootstrap theo câu.
+  Một lần chạy riêng tái tạo các bảng và dự đoán dev giống từng byte.
+- Manager tạo CLI lập hồ sơ, khóa cấu hình và chạy test cuối với đúng các tham số
+  đã chọn trên dev. Kiểm tra toy chứng minh hồ sơ chưa khóa bị từ chối, thay đổi
+  tham số hoặc source làm hỏng khóa, các vai trò trùng cấu hình dùng chung dự đoán.
+  Hồ sơ `results/tables/final_candidate.json` ghi commit đánh giá `5dc15e2`.
+  QA đề nghị ghim cả các mô đun được nạp gián tiếp. Mã băm nguồn đã được mở rộng
+  trước khi khóa và bảng cấu hình ứng viên giữ nguyên.
+- QA tính lại toàn bộ điểm và năm ma trận nhầm lẫn từ dự đoán dev. Kiểm tra
+  cp1252 bằng test toy phát hiện và xác minh bản sửa lỗi ghi kết quả trên Windows.
+  Suite tích hợp đạt 904 bài kiểm thử và 3 bài kiểm thử con.
+- Slide chung 12 trang có lời dẫn 10 phút và đã được kiểm tra trong PowerPoint.
+  Biểu đồ dev dùng trực tiếp CSV lưới mở rộng. TV1 đã thử audit sau khóa trên toy.
+  Cấu hình test vẫn chờ nhóm xác nhận.
