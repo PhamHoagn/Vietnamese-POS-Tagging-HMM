@@ -1,6 +1,7 @@
 """Run the fixed VTB train/dev protocol, including a single shared edge expansion."""
 
 import argparse
+from collections.abc import Mapping
 import hashlib
 import json
 import platform

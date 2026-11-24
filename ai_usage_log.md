@@ -182,3 +182,13 @@
   lẫn, 3 khoảng tin cậy và 389 cặp lỗi. Các số đo và mã băm khớp đầu ra đã lưu.
 - Agent TV1 kiểm kê ba split, cập nhật ba hình và diễn giải 10 lỗi Test theo
   ID câu, vị trí và nhãn. Dữ liệu gốc và dự đoán chi tiết được giữ local.
+
+## Rà soát tương thích Python và phát xạ UNK trên dev
+
+- Người rà soát chỉ ra annotation thiếu import và đề xuất tách các token dev
+  theo tần suất train. AI tái hiện lỗi trên Python 3.12.10, bổ sung import
+  và kiểm tra đường chạy demo với cấu hình đã công bố.
+- AI chạy lại lưới dev và đối chiếu toàn bộ chỉ số với bảng đã lưu. Thí nghiệm
+  bổ sung dùng lượt đếm của các từ chỉ gặp một lần trong train để ước lượng UNK.
+  [Bảng tổng hợp dev](results/tables/diagnostics_dev_unk.csv) ghi cả số token
+  đúng để nhóm kiểm tra từng chênh lệch. Phạm vi thí nghiệm là train/dev.

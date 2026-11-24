@@ -1,6 +1,7 @@
 """Serve the interactive Vietnamese POS demo on a loopback address."""
 
 import argparse
+import json
 from dataclasses import dataclass
 from hashlib import sha256
 from html import escape
@@ -11,7 +12,6 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 
 from scripts.demo_language import ContextualTrigram, WordSegmenter, demo_training
 from scripts.demo_tv2 import fit_models, load_demo_corpus
-from scripts.final_experiment import ROOT, read_lock
 from src.data_loader import load_conllu, read_conllu
 
 
@@ -25,6 +25,9 @@ TAG_NAMES = {
     "INTJ": "Thán từ", "SYM": "Ký hiệu", "X": "Khác",
 }
 ASSETS = Path(__file__).with_name("demo_assets")
+ARCHIVED_CONFIG = Path(__file__).resolve().parents[1] / "results/tables/final_lock.json"
+# SHA-256 of the published configuration file (UTF-8, normalized line endings).
+ARCHIVED_CONFIG_SHA256 = "83bcc2bb8c6b283c08ca79ca82a2a5c98778261bc727e8c8d6616a923de29470"
 
 
 @dataclass
@@ -45,6 +48,14 @@ def verified_split(path: Path, expected_hash: str, name: str) -> Path:
     return path
 
 
+def demo_config(path: Path) -> dict:
+    """Load the archived parameters for inference. The Test runner has its own source checks."""
+    content = path.read_text(encoding="utf-8")
+    if sha256(content.encode("utf-8")).hexdigest() != ARCHIVED_CONFIG_SHA256:
+        raise ValueError("Cấu hình demo lệch mã băm của bản đã công bố.")
+    return json.loads(content)["candidate"]
+
+
 class Demo:
     def __init__(self, train_path=None, dev_path=None):
         *train, toy = load_demo_corpus()
@@ -57,7 +68,7 @@ class Demo:
         self.configs = {"best": (params, params)}
         self.source = "Corpus đồ chơi"
         if train_path:
-            candidate = read_lock(ROOT / "results/tables/final_lock.json")["candidate"]
+            candidate = demo_config(ARCHIVED_CONFIG)
             dataset = candidate["dataset"]
             train = load_conllu(verified_split(train_path, dataset["train_sha256"], "train"))
             if dev_path:

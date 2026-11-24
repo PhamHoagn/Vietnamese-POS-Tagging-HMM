@@ -56,7 +56,10 @@ Mọi thay đổi protocol sau khi xem kết quả test cần ghi rõ thời đi
 
 Lần chạy hoàn tất lúc 10:16:25 ngày 24/11/2026 (UTC+7), trên 800 câu và 11.692 token Test. Trigram best và fixed dùng cùng một kết quả dự đoán, nên năm vai trò dùng bốn cấu hình duy nhất. [Bảng kết quả](../results/tables/test/metrics_test.csv) · [Ba khoảng tin cậy](../results/tables/test/paired_bootstrap_test.csv) · [Mã băm và phiên bản môi trường](../results/tables/test/run_metadata.json)
 
-Để tái lập khi cần, dùng hồ sơ đã khóa và hai thư mục đầu ra mới. Bản chạy tái
+Để tái lập hoặc audit lần chạy này khi cần, dùng bản checkout tại commit
+`7d1f0b5`, trong đó có cả mã khớp hồ sơ và các bảng đã công bố.
+Bản sửa import Python 3.12 sau đó làm thay đổi mã băm của script dev.
+Lệnh tái lập dưới đây dùng hồ sơ đã khóa và hai thư mục đầu ra mới. Bản chạy tái
 lập lưu riêng dưới `.venv`. Thay đường dẫn dữ liệu theo bản sao train/dev đã
 xác minh trên máy.
 

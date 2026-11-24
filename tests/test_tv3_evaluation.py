@@ -1,12 +1,18 @@
 import csv
+from collections.abc import Mapping
+from typing import get_type_hints
 
 import numpy as np
 import pytest
 
-from scripts.evaluate_dev import expanded_grid
+from scripts.evaluate_dev import _save_grid, expanded_grid
 from src.bootstrap import paired_accuracy_intervals
 from src.data_loader import Sentence
 from src.evaluation_outputs import as_corpus, write_label_tables, write_predictions
+
+
+def test_grid_writer_annotations_resolve_even_when_python_defers_them():
+    assert get_type_hints(_save_grid)["rows"] == Mapping[str, list[dict]]
 
 
 def test_grid_expansion_is_joint_at_all_triggered_edges():

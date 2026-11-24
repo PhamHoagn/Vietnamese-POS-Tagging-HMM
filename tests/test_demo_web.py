@@ -2,7 +2,17 @@
 
 import pytest
 
-from scripts.demo_web import Demo
+from scripts.demo_web import ARCHIVED_CONFIG, Demo, demo_config
+
+
+def test_demo_uses_only_the_published_parameters(tmp_path):
+    candidate = demo_config(ARCHIVED_CONFIG)
+    assert candidate["models"]["h1_best"]["params"] == {"alpha": 0.01, "cutoff": 1}
+    modified = tmp_path / "config.json"
+    modified.write_text(ARCHIVED_CONFIG.read_text(encoding="utf-8").replace('"cutoff": 1', '"cutoff": 0'),
+                        encoding="utf-8")
+    with pytest.raises(ValueError, match="mã băm"):
+        demo_config(modified)
 
 
 @pytest.fixture(scope="module")

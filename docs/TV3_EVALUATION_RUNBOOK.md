@@ -63,6 +63,52 @@ lần lấy mẫu với seed 42. Ba chênh lệch đã định nghĩa là Bigram
 baseline, Trigram tốt nhất trừ Bigram tốt nhất, và Trigram cố định trừ Bigram
 cố định. Lần chạy chính thức dùng [biên bản khóa](pre_register_test.md).
 
+## Vì sao Bigram thấp hơn B0 trên dev?
+
+Chia 26.162 token dev theo số lần FORM xuất hiện trong train. B0 chọn nhãn
+phổ biến nhất của từng FORM. Bigram dùng cấu hình đã chọn trên dev (α = 0,01,
+cutoff = 1). Cột cuối lấy chênh lệch số token đúng của nhóm chia cho **toàn bộ**
+26.162 token dev và nhân 100.
+
+| Tần suất trong train | Token dev | B0 đúng | Bigram đúng | Chênh lệch số đúng | Đóng góp vào Accuracy chung (điểm %) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Ít nhất 2 lần | 19.737 | 89,72% | 90,51% | +155 | +0,592 |
+| Đúng 1 lần | 1.596 | 89,85% | 50,56% | −627 | −2,397 |
+| Chưa gặp (OOV) | 4.829 | 43,74% | 41,02% | −131 | −0,501 |
+| **Tổng** | **26.162** | **81,24%** | **78,94%** | **−603** | **−2,305** |
+
+Nhóm xuất hiện đúng một lần chiếm 6,10% token dev nhưng tạo ra phần hụt lớn
+nhất. Với cutoff = 1, Bigram thay cả những từ này bằng `<UNK>` và mất thông tin
+về chính từ đã thấy. Với cutoff = 0 ở cùng α, Bigram đúng 89,29% trên nhóm này
+nhưng chỉ đúng 13,17% trên OOV. Khi đó `<UNK>` có số đếm bằng 0 cho mọi nhãn.
+Sau Add-α, mẫu số nhỏ của nhãn ít gặp có thể khiến nhãn đó được ưu tiên.
+Đây là phân rã kết quả dự đoán. Tính đúng của Viterbi được kiểm tra riêng bằng
+oracle vét cạn.
+
+### Thử nghiệm bổ sung chỉ trên dev
+
+Giữ mọi FORM đã thấy, giữ nguyên số đếm chuyển tiếp và số đếm từ–nhãn. Với mỗi
+nhãn, thêm vào cột `<UNK>` một lượt đếm cho mỗi FORM chỉ xuất hiện một lần với
+nhãn đó trong train. Sau đó cộng α và chuẩn hóa lại **toàn bộ hàng phát xạ**,
+kể cả cột `<UNK>`. Chỉ FORM chưa gặp mới đi qua cột này lúc giải mã.
+
+| Mô hình | α | Accuracy dev gốc | Accuracy dev với phát xạ mới | OOV Accuracy với phát xạ mới |
+| --- | ---: | ---: | ---: | ---: |
+| Bigram | 0,01 | 78,94% | 81,2361% | 41,00% |
+| Trigram | 0,1 | 78,59% | 80,7201% | 43,26% |
+
+Biến thể Bigram đúng 21.253 token, B0 đúng 21.255. So với Bigram gốc, biến thể
+đúng thêm 625 token ở nhóm xuất hiện một lần, đúng ít hơn 23 token ở nhóm xuất
+hiện ít nhất hai lần và ít hơn 1 token OOV. Phần cải thiện đến chủ yếu từ việc
+giữ lại từ đã thấy. Kết quả này là phân tích bổ sung sau khi khóa cấu hình.
+
+Tái lập từ train/dev bằng lệnh dưới đây. CSV chỉ chứa số liệu tổng hợp.
+[Bảng số đếm và đóng góp của từng nhóm](../results/tables/diagnostics_dev_unk.csv)
+
+```sh
+python -m scripts.diagnose_dev_unk --data data/raw/ud-vtb-fa7130860b65
+```
+
 ## Đối chiếu kết quả Test
 
 Test có 800 câu, 11.692 token và 1.747 token OOV (14,94%). Ma trận nhầm lẫn và
