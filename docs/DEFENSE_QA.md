@@ -2,7 +2,7 @@
 
 Luyện theo [slide nhóm](../slides/NLP_POS_NHOM.pptx) và
 [demo ba mô hình](TV2_GIAI_TAY_VITERBI.md). Các câu hỏi dưới đây dùng cho
-5 phút hỏi đáp sau phần trình bày. Giá trị Test lấy từ lần chạy đã khóa.
+5 phút hỏi đáp sau phần trình bày. [Số liệu Test đã khóa](TV3_EVALUATION_RUNBOOK.md#đối-chiếu-kết-quả-test)
 
 | Người trả lời | Câu hỏi | Ý cần giải thích |
 | --- | --- | --- |

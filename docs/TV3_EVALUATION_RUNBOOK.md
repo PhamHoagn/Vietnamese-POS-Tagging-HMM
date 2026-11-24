@@ -79,6 +79,9 @@ Cả ba CI chứa 0. Trigram best đúng thêm 70 token OOV so với Bigram best
 trong các cấu hình này. Khi bỏ PUNCT, Accuracy của B0 và hai HMM best nằm trong
 khoảng 78,66–78,69%. [CI gốc](../results/tables/test/paired_bootstrap_test.csv)
 
+Ở cặp cố định, Trigram − Bigram là −0,290 điểm % trên dev và +0,188 điểm %
+trên Test. CI Test chứa 0. [Bảng ablation dev](../results/tables/dev/ablation_fixed_dev.csv)
+
 Kiểm tra mô tả bằng chuỗi nhãn gold cho thấy 21/12.492 chuyển tiếp Bigram
 và 359/12.492 chuyển tiếp Trigram trên Test chưa từng xuất hiện trong train,
 tính cả EOS. Với Trigram, 21 bước có cả lịch sử hai nhãn chưa từng thấy, khi đó

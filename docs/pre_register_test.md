@@ -44,7 +44,7 @@ Trigram đạt kiểm thử oracle, chuẩn hóa và ca biên của TV1, cùng n
 - Hồ sơ test giữ hash dự đoán, hash các bảng tổng hợp và phiên bản môi trường. Dữ liệu gốc, dự đoán từng token và văn bản ví dụ lỗi nằm trong thư mục local.
 - SHA-256 của hồ sơ dev trong ứng viên dùng văn bản UTF-8 với xuống dòng LF. Các hash file dữ liệu và CSV Test dùng byte nguyên gốc của lần chạy.
 
-## Trình tự thực hiện
+## Trình tự đã thực hiện
 
 1. `python -m scripts.final_experiment prepare --selection results/tables/dev/selection.json --output results/tables/final_candidate.json` sau khi commit code thực nghiệm. Hồ sơ chứa commit code, hash script và định danh dữ liệu.
 2. TV1 và TV3 duyệt bảng cấu hình và ghi xác nhận khóa. Sau xác nhận, chạy `python -m scripts.final_experiment seal --candidate results/tables/final_candidate.json --confirmation "THAM_CHIEU_XAC_NHAN_CUA_NHOM" --output results/tables/final_lock.json` và thay tham chiếu bằng xác nhận thực tế.
@@ -55,3 +55,11 @@ Mọi thay đổi protocol sau khi xem kết quả test cần ghi rõ thời đi
 ## Lần chạy đã khóa
 
 Lần chạy hoàn tất lúc 10:16:25 ngày 24/11/2026 (UTC+7), trên 800 câu và 11.692 token Test. Trigram best và fixed dùng cùng một kết quả dự đoán, nên năm vai trò dùng bốn cấu hình duy nhất. [Bảng kết quả](../results/tables/test/metrics_test.csv) · [Ba khoảng tin cậy](../results/tables/test/paired_bootstrap_test.csv) · [Mã băm và phiên bản môi trường](../results/tables/test/run_metadata.json)
+
+Để tái lập khi cần, dùng hồ sơ đã khóa và hai thư mục đầu ra mới. Bản chạy tái
+lập lưu riêng dưới `.venv`. Thay đường dẫn dữ liệu theo bản sao train/dev đã
+xác minh trên máy.
+
+```sh
+python -X utf8 -m scripts.final_experiment run --lock results/tables/final_lock.json --data-dir data/raw/ud-vtb-fa7130860b65 --private-dir .venv/reproduce/test-private --summary-dir .venv/reproduce/test-summary
+```
