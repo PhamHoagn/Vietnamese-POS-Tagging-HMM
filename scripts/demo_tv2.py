@@ -4,20 +4,32 @@ from pathlib import Path
 import sys
 
 from src.baseline import MostFrequentTagger
+from src.contracts import Corpus
 from src.data_loader import load_conllu
 from src.hmm_bigram import BigramHMMTagger
 from src.hmm_common import HMMTrainingCache
 from src.hmm_trigram import TrigramHMMTagger
 
 
-def main() -> None:
+def load_demo_corpus() -> Corpus:
     fixture = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "tiny.conllu"
-    first, second, (tokens, gold) = load_conllu(fixture)
-    train = [first, second]
+    return load_conllu(fixture)
+
+
+def fit_models(train: Corpus, *, bigram_params: dict, trigram_params: dict) -> tuple[
+    MostFrequentTagger, BigramHMMTagger, TrigramHMMTagger
+]:
     cache = HMMTrainingCache()
     baseline = MostFrequentTagger().fit(train)
-    bigram = BigramHMMTagger(alpha=0.1, cutoff=1, cache=cache).fit(train)
-    trigram = TrigramHMMTagger(alpha=0.1, cutoff=1, cache=cache).fit(train)
+    bigram = BigramHMMTagger(**bigram_params, cache=cache).fit(train)
+    trigram = TrigramHMMTagger(**trigram_params, cache=cache).fit(train)
+    return baseline, bigram, trigram
+
+
+def main() -> None:
+    *train, (tokens, gold) = load_demo_corpus()
+    params = {"alpha": 0.1, "cutoff": 1}
+    baseline, bigram, trigram = fit_models(train, bigram_params=params, trigram_params=params)
     baseline_tags = baseline.predict(tokens)
     bigram_tags = bigram.predict(tokens)
     trigram_tags = trigram.predict(tokens)

@@ -47,6 +47,16 @@ python -m scripts.plot_dev_grid
 Nếu lần chạy dev chỉ có lưới khởi đầu, thêm
 `--grid results/tables/dev/grid_initial_dev.csv`.
 
+### Ví dụ từ đa nghĩa trên dev
+
+FORM `bàn` xuất hiện 3 lần trong train và cả 3 mang nhãn VERB. Trên dev,
+cả 7 lần đều mang nhãn NOUN. B0 và Bigram best đúng 0/7. Trigram best,
+Bigram fixed và Trigram fixed đều đúng 2/7 ở `dev-16` và `dev-900`.
+Demo cho mở `dev-804` (cả ba mô hình best đều sai ở `bàn`) và
+`dev-900` (Trigram best đúng ở `bàn`), với nhãn đọc từ file dev đã kiểm
+mã băm. Đây là hai ví dụ được chọn để minh họa, còn các tỷ lệ 0/7 và 2/7
+đếm trên toàn bộ lần xuất hiện của FORM này trong dev.
+
 Bootstrap trong `src/bootstrap.py` dùng cùng mẫu câu có hoàn lại cho mỗi cặp,
 gom token rồi tính chênh lệch accuracy và lấy phân vị 2,5% và 97,5% trên 2.000
 lần lấy mẫu với seed 42. Ba chênh lệch đã định nghĩa là Bigram tốt nhất trừ

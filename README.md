@@ -59,6 +59,29 @@ Grid so sánh trên dev và ghi bảng vào `results/tables/dev/`. Dự đoán c
 corpus lưu trong `.venv/project-runs/dev/`. Cách ghi xác nhận của nhóm và chạy
 đánh giá cuối nằm trong [hồ sơ đăng ký](docs/pre_register_test.md).
 
+## Demo trên trình duyệt
+
+```sh
+python -m scripts.demo_web
+```
+
+Mở [demo local](http://127.0.0.1:8765). Chọn **Nhập câu bình thường** để tự
+tách từ, hoặc **Nhập token đã tách** và dùng dấu `|` để giữ ranh giới từ,
+chẳng hạn `Tôi | đến | Hà Nội | .`. Hai câu mẫu đầu minh họa “bàn” trong ngữ
+cảnh danh từ và động từ. Mặc định demo dùng corpus đồ chơi. Để dùng dữ liệu
+huấn luyện UD VTB và cấu hình tốt nhất đã khóa của mỗi HMM, chạy thêm
+`--train data/raw/ud-vtb-fa7130860b65/vi_vtb-ud-train.conllu`. Thêm
+`--dev data/raw/ud-vtb-fa7130860b65/vi_vtb-ud-dev.conllu` để mở hai câu dev
+có nhãn chuẩn. Menu **Ablation cùng tham số** dùng `α=0.1, cutoff=1` cho cả
+hai HMM gốc. Accuracy trên web được tính theo câu có nhãn chuẩn đang hiển thị.
+Cột **Ngữ cảnh** dùng bộ phân loại logistic học từ token và các từ liền kề.
+Viterbi giải mã bằng chuyển tiếp Trigram và điểm log xác suất nhãn đã hiệu
+chỉnh theo tần suất nhãn. Riêng bản demo này học thêm 26 câu tự soạn trong
+[dữ liệu bổ sung](scripts/demo_training.txt). Cột B0, Bigram và Trigram dùng
+tập train gốc. Bộ tách từ tự động ghép theo từ dài nhất đã gặp trong tập train
+của demo và có thể tách sai cụm lạ. Khi biết ranh giới từ, chọn chế độ thủ công.
+Xem [bảng dev](results/tables/dev/metrics_dev.csv) cho kết quả toàn split.
+
 ## Đọc CoNLL-U (TV1)
 
 ```python

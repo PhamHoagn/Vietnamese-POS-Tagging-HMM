@@ -1,0 +1,27 @@
+# Câu tự soạn cho mô hình demo. Mỗi dòng là một câu, mỗi token mang nhãn UPOS.
+Chị/PRON | kê/VERB | chiếc/NOUN | bàn/NOUN | mới/ADJ | ./PUNCT
+Em/PRON | lau/VERB | mặt/NOUN | bàn/NOUN | ./PUNCT
+Cái/NOUN | bàn/NOUN | này/PRON | khá/ADV | cao/ADJ | ./PUNCT
+Bàn/NOUN | gỗ/NOUN | rất/ADV | bền/ADJ | ./PUNCT
+Anh/PRON | để/VERB | sách/NOUN | lên/ADP | bàn/NOUN | ./PUNCT
+Tôi/PRON | mua/VERB | một/NUM | cái/NOUN | bàn/NOUN | tròn/ADJ | ./PUNCT
+Những/DET | chiếc/NOUN | bàn/NOUN | đều/ADV | sạch/ADJ | ./PUNCT
+Chị/PRON | thấy/VERB | bàn/NOUN | cũ/ADJ | quá/ADV | ./PUNCT
+Thợ/NOUN | vừa/ADV | đóng/VERB | xong/VERB | bàn/NOUN | ./PUNCT
+Họ/PRON | đang/ADV | bàn/VERB | phương án/NOUN | mới/ADJ | ./PUNCT
+Ta/PRON | cùng/ADV | bàn/VERB | chuyện/NOUN | sửa/VERB | nhà/NOUN | ./PUNCT
+Chúng ta/PRON | sẽ/ADV | bàn/VERB | về/ADP | ngân sách/NOUN | ./PUNCT
+Mai/PROPN | bàn/VERB | với/ADP | bố/NOUN | về/ADP | chuyến/NOUN | đi/VERB | ./PUNCT
+Hai/NUM | người/NOUN | ngồi/VERB | bàn/VERB | kế hoạch/NOUN | ./PUNCT
+Tôi/PRON | muốn/VERB | bàn/VERB | thêm/ADV | ./PUNCT
+Họ/PRON | đã/ADV | bàn bạc/VERB | kỹ/ADJ | ./PUNCT
+Các/DET | bạn/NOUN | bàn bạc/VERB | công việc/NOUN | ./PUNCT
+Em/PRON | thở/VERB | một/NUM | hơi/NOUN | dài/ADJ | ./PUNCT
+Nồi/NOUN | nước/NOUN | bốc/VERB | hơi/NOUN | ./PUNCT
+Hơi/NOUN | nước/NOUN | làm/VERB | mờ/ADJ | kính/NOUN | ./PUNCT
+Chiếc/NOUN | ghế/NOUN | hơi/ADV | thấp/ADJ | ./PUNCT
+Phòng/NOUN | này/PRON | hơi/ADV | nóng/ADJ | ./PUNCT
+Sinh viên/NOUN | học/VERB | lịch sử/NOUN | ./PUNCT
+Đó/PRON | là/AUX | một/NUM | sự kiện/NOUN | lịch sử/ADJ | ./PUNCT
+Học sinh/NOUN | đi/VERB | bộ/NOUN | đến/ADP | trường/NOUN | ./PUNCT
+Chúng tôi/PRON | gặp/VERB | nhau/PRON | ở/ADP | Hà Nội/PROPN | ./PUNCT

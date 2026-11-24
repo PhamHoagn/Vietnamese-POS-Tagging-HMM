@@ -212,6 +212,22 @@ tempCodeRunnerFile.py
 /data/raw/*
 !/data/raw/.gitkeep
 
+# Local credentials and private environment overrides.
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.key
+*.p12
+*.pfx
+
+# Token-level exports may contain original corpus text.
+/results/**/predictions_*.csv
+/results/**/baseline_*.csv
+/results/**/errors_*.csv
+/results/**/error_examples_*.md
+/results/**/word_errors_dev.csv
+
 # Ruff stuff:
 .ruff_cache/
 

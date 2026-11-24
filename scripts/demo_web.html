@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo hệ thống POS Tagging tiếng Việt</title>
+  <style>
+    @font-face {font-family:Bricolage;src:url("/bricolage.ttf") format("truetype");font-weight:200 800;font-display:swap}
+    :root {color-scheme:light;--ink:#202446;--muted:#515977;--accent:#4937a4;--line:#d8dbe8;--paper:#fcfcff;--tint:#f0edfc;--display:Bricolage,"Segoe UI",sans-serif;font:16px/1.55 "Segoe UI",system-ui,sans-serif;color:var(--ink);background:#f5f6fb}
+    * {box-sizing:border-box}
+    body {margin:0}
+    .wrap {width:min(1180px,92%);margin-inline:auto}
+    header {background:#252346;color:#fff}
+    header .wrap {min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand {display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:1.04rem}
+    .mark {display:inline-grid;place-items:center;width:31px;height:28px;border:1px solid #aaa1ec;border-radius:7px;color:#e6e4ff;font-size:1.04rem;line-height:1}
+    header a {color:#fff;font-size:.86rem;text-underline-offset:4px}
+    main {padding:clamp(20px,3.2vw,44px) 0 48px}
+    h1,h2,legend {font-family:var(--display);line-height:1.18;margin:0;text-wrap:balance}
+    h1 {font-size:clamp(2rem,4.25vw,3.75rem);letter-spacing:-.047em;font-weight:740}
+    h2 {font-size:clamp(1.35rem,2.1vw,1.7rem);letter-spacing:-.03em}
+    .lead {margin:.42rem 0 1.45rem;color:var(--muted)}
+    .workspace {display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,1fr);background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+    .editor,.reading {padding:clamp(16px,2.25vw,29px);min-width:0}
+    .reading {border-left:1px solid var(--line);background:#eeedf9}
+    fieldset {padding:0;border:0;min-width:0;margin:0}
+    legend {font-weight:700;font-size:1.38rem;margin-bottom:12px}
+    .choices {display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .choice {position:relative;display:grid;grid-template-columns:17px auto;align-content:center;align-items:center;gap:0 8px;padding:9px 10px;border:1px solid #b7bdcf;border-radius:8px;cursor:pointer;font-size:.91rem;font-weight:650;line-height:1.4}
+    .choice small {grid-column:2;color:var(--muted);font-size:.78rem;font-weight:400}
+    .choice input {width:16px;height:16px;margin:0;accent-color:var(--accent)}
+    .choice:has(input:checked) {background:var(--tint);border:1px solid var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+    .choice:focus-within {outline:3px solid #a46b00;outline-offset:2px}
+    .input-panel {margin:14px 0}
+    .field-label {display:block;font-weight:650;font-size:.91rem}
+    textarea {display:block;resize:vertical;width:100%;min-height:86px;border:1px solid #939bb5;border-radius:7px;background:#fff;color:var(--ink);font:1.09rem/1.55 var(--display);padding:9px 12px;margin-top:5px}
+    form:has(#auto:checked) .manual-panel,form:has(#manual:checked) .auto-panel {display:none}
+    .hint,.status,.foot,.scores {font-size:.87rem;color:var(--muted);margin:.4rem 0 0}
+    :focus-visible {outline:3px solid #a46b00;outline-offset:3px}
+    button,select {font:inherit}
+    button {border:0;border-radius:7px;background:var(--accent);color:white;font-weight:650;padding:9px 20px;cursor:pointer}
+    button:hover {background:#382881}
+    .actions {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .config {display:flex;gap:5px;align-items:center;font-size:.82rem;color:var(--muted)}
+    select {background:#fff;color:var(--ink);border:1px solid #b7bdcf;border-radius:5px;max-width:100%;padding:6px}
+    .examples {display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 12px;border-top:1px solid var(--line);margin-top:16px;padding-top:10px;font-size:.82rem}
+    .examples b {color:var(--muted)}
+    .examples a {color:var(--accent);text-underline-offset:3px;min-height:25px}
+    .status {margin:5px 0 16px}
+    .ribbon {display:flex;flex-wrap:wrap;align-content:flex-start;align-items:flex-start;gap:9px 10px;list-style:none;padding:0;margin:0;max-height:20rem;overflow:auto}
+    .annotation {--tag:#555d78;display:grid;justify-items:start;line-height:1.2;background:#fff;border:1px solid #dbdaea;border-bottom:3px solid var(--tag);border-radius:5px;padding:8px 10px;min-width:44px;max-width:100%}
+    .annotation b {font:650 1.24rem/1.2 var(--display);overflow-wrap:anywhere}
+    .annotation span {font-size:.72rem;font-weight:750;color:var(--tag);margin:5px 0 2px}
+    .annotation small {font-size:.72rem;color:#4e5470}
+    .t-NOUN,.t-PROPN {--tag:#087161}.t-VERB,.t-AUX {--tag:#963c54}.t-ADJ,.t-ADV {--tag:#805200}.t-PRON,.t-DET {--tag:#4f45a4}
+    .method {margin-top:16px;font-size:.82rem;color:var(--muted)}
+    summary {cursor:pointer;color:var(--accent);font-weight:600}
+    .method p {margin:.5rem 0 0;max-width:63ch}
+    .comparison {margin-top:22px;padding:clamp(15px,2.25vw,28px);border:1px solid var(--line);border-radius:13px;background:var(--paper)}
+    .scores {font-weight:600;color:var(--ink)}
+    .scores:empty,.error:empty {display:none}
+    .table-wrap {overflow:auto;max-height:29rem;margin:12px 0 8px}
+    table {width:100%;border-collapse:separate;border-spacing:0;text-align:left;font-size:.9rem}
+    thead th {position:sticky;top:0;z-index:1;background:#eef0f7;color:#444a66;font-size:.82rem}
+    th,td {white-space:nowrap;padding:8px 12px;border-bottom:1px solid #e3e4ee}
+    tbody th {position:sticky;left:0;background:var(--paper);font-weight:650}
+    td:nth-child(3),thead th:nth-child(3) {color:#493496;font-weight:650;background:#f4f1fd}
+    td.incorrect,td.incorrect:nth-child(3) {color:#90334b;background:#feeff1}
+    .error {background:#fff0f0;border-left:3px solid #a63352;color:#79243b;padding:8px 10px;font-size:.92rem}
+    .foot {font-size:.8rem}
+    @media(max-width:850px) {.workspace {grid-template-columns:1fr}.reading {border-left:0;border-top:1px solid var(--line)}.ribbon {max-height:14rem}}
+    @media(max-width:420px) {.wrap{width:94%}.editor,.reading,.comparison {padding:14px}.choices {grid-template-columns:1fr}.choice{grid-template-columns:18px auto 1fr;min-height:42px}.choice small{grid-column:3;text-align:right}.config {flex-wrap:wrap}th,td{padding:7px 9px}.lead{margin-bottom:1rem}}
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><div class="brand"><span class="mark" aria-hidden="true">vi</span> Gán nhãn tiếng Việt</div><a href="#comparison">So sánh mô hình</a></div></header>
+  <main class="wrap">
+    <h1>Demo hệ thống POS Tagging</h1>
+    <p class="lead">Nhập một câu tiếng Việt để xem từ loại của từng token trong ngữ cảnh.</p>
+    <div class="workspace">
+      <section class="editor" aria-label="Nhập câu">
+        <form method="post" action="/">
+          <fieldset><legend>Chọn cách nhập</legend><div class="choices">
+            <label class="choice"><input id="auto" type="radio" name="input_mode" value="auto" $auto_checked>Nhập câu bình thường<small>Tự động tách từ</small></label>
+            <label class="choice"><input id="manual" type="radio" name="input_mode" value="manual" $manual_checked>Nhập token đã tách<small>Thủ công</small></label>
+          </div></fieldset>
+          <div class="input-panel auto-panel"><label class="field-label" for="text">Câu tiếng Việt</label><textarea id="text" name="text" rows="2" maxlength="10100" aria-describedby="auto-hint">$raw</textarea>
+            <p class="hint" id="auto-hint">Viết như bình thường, kể cả dấu câu.</p></div>
+          <div class="input-panel manual-panel"><label class="field-label" for="tokens">Các token</label><textarea id="tokens" name="tokens" rows="2" maxlength="10300" aria-describedby="manual-hint">$manual</textarea>
+            <p class="hint" id="manual-hint">Ngăn cách bằng dấu |, ví dụ: Tôi | đến | Hà Nội | .</p></div>
+          <p class="error" role="alert">$error</p>
+          <div class="actions"><button type="submit">Gán nhãn</button><label class="config" for="mode">HMM gốc <select name="mode" id="mode">$options</select></label></div>
+        </form>
+        <nav class="examples" aria-label="Câu mẫu"><b>Thử câu mẫu</b> $examples</nav>
+      </section>
+      <section class="reading" aria-labelledby="read-title">
+        <h2 id="read-title">Nhãn theo ngữ cảnh</h2><p class="status" role="status">$status</p>
+        <ul class="ribbon">$annotated</ul>
+        <details class="method"><summary>Cách hệ thống gán nhãn</summary>
+          <p>Demo xét từ hiện tại và các từ liền kề, rồi dùng Viterbi Trigram chọn chuỗi nhãn. Dữ liệu học gồm $n_train câu từ $source và $n_extra câu bổ sung do dự án tự soạn. Chế độ tự động ghép các âm tiết theo từ dài nhất có trong từ vựng huấn luyện.</p></details>
+      </section>
+    </div>
+    <section class="comparison" id="comparison" aria-labelledby="compare-title"><h2 id="compare-title">So sánh theo token</h2>
+      <p class="scores">$scores</p>
+      <div class="table-wrap" tabindex="0" role="region" aria-labelledby="compare-title"><table>
+        <thead><tr><th scope="col">Token</th><th scope="col">Nhãn chuẩn</th><th scope="col">Ngữ cảnh</th><th scope="col">B0</th><th scope="col">Bigram</th><th scope="col">Trigram</th><th scope="col">OOV</th></tr></thead>
+        <tbody>$rows</tbody>
+      </table></div>
+      <p class="foot">≠ khác nhãn chuẩn. OOV là từ vắng trong tập train gốc. B0 chọn nhãn thường gặp nhất. Bigram $bigram_config · Trigram $trigram_config.</p>
+    </section>
+  </main>
+</body>
+</html>
