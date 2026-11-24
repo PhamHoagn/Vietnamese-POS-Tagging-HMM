@@ -88,19 +88,37 @@ oracle vét cạn.
 ### Thử nghiệm bổ sung chỉ trên dev
 
 Giữ mọi FORM đã thấy, giữ nguyên số đếm chuyển tiếp và số đếm từ–nhãn. Với mỗi
-nhãn, thêm vào cột `<UNK>` một lượt đếm cho mỗi FORM chỉ xuất hiện một lần với
-nhãn đó trong train. Sau đó cộng α và chuẩn hóa lại **toàn bộ hàng phát xạ**,
+nhãn, thêm vào cột `<UNK>` một lượt đếm cho mỗi FORM xuất hiện đúng một lần
+trong toàn bộ train và mang nhãn đó. Sau đó cộng α và chuẩn hóa lại **toàn bộ hàng phát xạ**,
 kể cả cột `<UNK>`. Chỉ FORM chưa gặp mới đi qua cột này lúc giải mã.
 
 | Mô hình | α | Accuracy dev gốc | Accuracy dev với phát xạ mới | OOV Accuracy với phát xạ mới |
 | --- | ---: | ---: | ---: | ---: |
-| Bigram | 0,01 | 78,94% | 81,2361% | 41,00% |
+| Bigram | 0,01 | 78,9389% | 81,2361% | 41,00% |
 | Trigram | 0,1 | 78,59% | 80,7201% | 43,26% |
 
-Biến thể Bigram đúng 21.253 token, B0 đúng 21.255. So với Bigram gốc, biến thể
-đúng thêm 625 token ở nhóm xuất hiện một lần, đúng ít hơn 23 token ở nhóm xuất
-hiện ít nhất hai lần và ít hơn 1 token OOV. Phần cải thiện đến chủ yếu từ việc
-giữ lại từ đã thấy. Kết quả này là phân tích bổ sung sau khi khóa cấu hình.
+#### Phân tích bổ sung sau thực nghiệm
+
+Số token dev được gán đúng theo tần suất của từ trong train. Cả hai bản Bigram dùng α = 0,01.
+
+| Tần suất trong train | Token dev | Bigram gốc đúng | Bigram biến thể đúng | Chênh lệch số đúng (biến thể − gốc) |
+| --- | ---: | ---: | ---: | ---: |
+| Ít nhất 2 lần | 19.737 | 17.864 | 17.841 | −23 |
+| Đúng 1 lần | 1.596 | 807 | 1.432 | +625 |
+| Chưa gặp (OOV) | 4.829 | 1.981 | 1.980 | −1 |
+| **Tổng** | **26.162** | **20.652** | **21.253** | **+601** |
+
+Trên dev, giữ các từ đã gặp và dùng từ xuất hiện đúng một lần để ước lượng phát
+xạ cho `<UNK>` giúp Bigram tăng từ 78,9389% lên 81,2361%, chỉ kém B0 hai token
+đúng. Số token đúng tăng 625 ở nhóm xuất hiện một lần, giảm 23 ở nhóm xuất hiện
+ít nhất hai lần và giảm 1 ở nhóm OOV. Tổng cộng, biến thể gán đúng thêm 601 token.
+
+Với cùng cách xử lý từ hiếm, Trigram đạt 80,7201%, kém Bigram 135 token đúng
+(0,5160 điểm phần trăm). Một khả năng là Add-α kéo phân phối chuyển tiếp về gần
+phân phối đều khi cặp nhãn trước hiếm gặp. Hai mô hình dùng α khác nhau nên
+chưa thể quy khoảng cách cho riêng bậc HMM. Hướng tiếp theo là so sánh trên dev
+ở cùng α và thử dùng xác suất Bigram khi cặp nhãn trước chưa gặp hoặc quá hiếm
+(backoff).
 
 Tái lập từ train/dev bằng lệnh dưới đây. CSV chỉ chứa số liệu tổng hợp.
 [Bảng số đếm và đóng góp của từng nhóm](../results/tables/diagnostics_dev_unk.csv)
