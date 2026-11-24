@@ -24,6 +24,7 @@ Cột `idx` bắt đầu từ 0 trong mỗi câu và `sent_id` giữ nguyên t�
 | `metrics_dev.csv` | Năm metric của baseline, hai cấu hình tốt nhất và cặp ablation |
 | `ablation_fixed_dev.csv` | Cặp cố định α = 0,1, cutoff = 1 và hiệu H2 − H1 |
 | `per_tag_*.csv`, `confusion_*.csv` | Precision, recall, F1, support và ma trận theo 17 nhãn cho từng vai trò. Hàng là gold, cột là dự đoán. |
+| [`runtime.json`](../results/tables/dev/runtime.json) | Lần đo lại toàn bộ lệnh dev từ tải file local đến xuất bảng kết quả. Grid 9→12 cấu hình mỗi bậc chạy trong 31,16 giây trên Windows. |
 
 Xếp hạng lần lượt theo Token Accuracy giảm dần, Macro-F1 giảm dần, cutoff tăng dần
 và α giảm dần. Khi Token Accuracy bằng nhau, Macro-F1 được coi là hòa trong

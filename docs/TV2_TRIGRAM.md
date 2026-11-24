@@ -191,7 +191,9 @@ vét cạn câu 1–3 token và 60 corpus train toy ngẫu nhiên seed 2026; sco
 với decoder; câu một nhãn, câu dài, OOV, cache và config roundtrip. Không coi các
 self-check này là oracle nghiệm thu độc lập của TV1. Oracle TV1 hiện đã được
 ghép/nối adapter và chạy thật; không thay các bảng kỳ vọng của TV1.
-Chưa chạy runtime Colab thật, chưa tune/chọn mô hình bằng dev và chưa đánh giá test.
+Đã chạy grid và chọn cấu hình bằng dev trên Windows. Xem [quy trình đánh giá](TV3_EVALUATION_RUNBOOK.md)
+để phân biệt thời gian đo toàn bộ lệnh dev và phép dự phóng từ benchmark 100 câu.
+Test chính thức chờ xác nhận khóa.
 
 Kết quả checkpoint giai đoạn 2: **209 passed in 1.44s**. Sau tích hợp TV1:
 **875 passed, 3 subtests passed in 3.69s**, exit 0; smoke **PASS**, exit 0.

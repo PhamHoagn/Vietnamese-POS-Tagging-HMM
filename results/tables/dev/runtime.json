@@ -1,0 +1,12 @@
+{
+  "measured_at_utc": "2026-11-24T03:01:08+00:00",
+  "code_commit": "5d3e22db37a504ba6881a5c1fedab94c74ba52c3",
+  "wall_seconds": 31.16,
+  "initial_configurations_per_order": 9,
+  "final_configurations_per_order": 12,
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "numpy": "2.5.5",
+  "scikit_learn": "1.9.1",
+  "scope": "Dev CLI end-to-end, includes data loading, model fitting and decoding, metrics and output; excludes Test and CI"
+}
