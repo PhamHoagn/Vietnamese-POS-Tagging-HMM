@@ -173,3 +173,12 @@
   Tải mới train/dev, tái tạo đúng nội dung 14 CSV dev, cấu hình và quy tắc chọn,
   đồng thời hiển thị đủ bốn hình. Nhóm cần diễn tập và kiểm tra quyền truy cập
   trên bản chia sẻ cuối.
+
+## 2026-11-24 Đánh giá Test đã khóa
+
+- Manager ghi xác nhận của người dùng, khóa đúng candidate đã chốt trên dev rồi
+  chạy Test một đợt. Bốn cấu hình duy nhất phục vụ năm vai trò, gồm ablation.
+- Agent QA tính lại từ dự đoán gốc 25 ô chỉ số, 85 dòng theo UPOS, 5 ma trận nhầm
+  lẫn, 3 khoảng tin cậy và 389 cặp lỗi. Các số đo và mã băm khớp đầu ra đã lưu.
+- Agent TV1 kiểm kê ba split, cập nhật ba hình và diễn giải 10 lỗi Test theo
+  ID câu, vị trí và nhãn. Dữ liệu gốc và dự đoán chi tiết được giữ local.

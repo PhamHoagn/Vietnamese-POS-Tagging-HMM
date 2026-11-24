@@ -1,11 +1,11 @@
 # Đăng ký trước đánh giá test
 
-**Chờ xác nhận khóa.** Các lựa chọn dưới đây dựa trên dev và kế hoạch v4.1. TV1 và TV3 ghi xác nhận phạm vi Test theo Phụ lục A trước khi mở Test.
+**Đã khóa lúc 10:16:21 ngày 24/11/2026 (UTC+7).** Hồ sơ lưu xác nhận qua cuộc trò chuyện rằng TV1 và TV3 đã duyệt chạy Test với ablation. Bản đăng ký dựa trên dev đã được lưu trước khi mở Test. [Hồ sơ đã khóa](../results/tables/final_lock.json)
 
-- [ ] TV1 xác nhận corpus, giấy phép và audit phân tách dữ liệu.
+- [x] TV1 xác nhận corpus, giấy phép và phạm vi đánh giá.
 - [x] TV2 đối chiếu hai bộ giải mã, kiểm thử oracle và ngân sách CPU.
-- [ ] TV3 xác nhận metric, quy tắc chọn cấu hình và bootstrap.
-- [ ] Ghi xác nhận chung và niêm phong hồ sơ trước đợt chạy test.
+- [x] TV3 xác nhận metric, cấu hình và bootstrap.
+- [x] Ghi nhận xác nhận qua cuộc trò chuyện và niêm phong hồ sơ trước đợt chạy Test.
 
 ## Dữ liệu
 
@@ -51,3 +51,7 @@ Trigram đạt kiểm thử oracle, chuẩn hóa và ca biên của TV1, cùng n
 3. Chạy `python -m scripts.final_experiment run --lock results/tables/final_lock.json --data-dir data/raw/ud-vtb-fa7130860b65 --private-dir .venv/project-runs/test --summary-dir results/tables/test` từ commit đã duyệt. Thay `--data-dir` theo nơi lưu train/dev đã xác minh trên máy đang chạy.
 
 Mọi thay đổi protocol sau khi xem kết quả test cần ghi rõ thời điểm và lý do, và được tách khỏi phân tích đã đăng ký.
+
+## Lần chạy đã khóa
+
+Lần chạy hoàn tất lúc 10:16:25 ngày 24/11/2026 (UTC+7), trên 800 câu và 11.692 token Test. Trigram best và fixed dùng cùng một kết quả dự đoán, nên năm vai trò dùng bốn cấu hình duy nhất. [Bảng kết quả](../results/tables/test/metrics_test.csv) · [Ba khoảng tin cậy](../results/tables/test/paired_bootstrap_test.csv) · [Mã băm và phiên bản môi trường](../results/tables/test/run_metadata.json)

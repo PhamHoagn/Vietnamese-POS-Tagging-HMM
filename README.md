@@ -39,6 +39,7 @@ train/dev; số in ra dùng để kiểm tra kết nối, không phải kết qu
 - [Giải tay Viterbi và demo](docs/TV2_GIAI_TAY_VITERBI.md)
 - [Grid và kết quả dev](docs/TV3_EVALUATION_RUNBOOK.md)
 - [Đăng ký trước đánh giá test](docs/pre_register_test.md)
+- [Kết quả Test và ba khoảng tin cậy](docs/TV3_EVALUATION_RUNBOOK.md#đối-chiếu-kết-quả-test)
 - [Checklist nghiệm thu và minh chứng](docs/PROJECT_CHECKLIST.md)
 
 Không đưa corpus gốc vào Git trước khi xác nhận giấy phép. Thư mục `data/raw/`

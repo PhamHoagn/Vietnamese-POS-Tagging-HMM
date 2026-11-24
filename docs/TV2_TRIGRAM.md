@@ -193,7 +193,7 @@ self-check này là oracle nghiệm thu độc lập của TV1. Oracle TV1 hiệ
 ghép/nối adapter và chạy thật; không thay các bảng kỳ vọng của TV1.
 Đã chạy grid và chọn cấu hình bằng dev trên Windows. Xem [quy trình đánh giá](TV3_EVALUATION_RUNBOOK.md)
 để phân biệt thời gian đo toàn bộ lệnh dev và phép dự phóng từ benchmark 100 câu.
-Test chính thức chờ xác nhận khóa.
+Test chính thức đã chạy sau khi khóa. [Bảng Test và CI](TV3_EVALUATION_RUNBOOK.md#đối-chiếu-kết-quả-test)
 
 Kết quả checkpoint giai đoạn 2: **209 passed in 1.44s**. Sau tích hợp TV1:
 **875 passed, 3 subtests passed in 3.69s**, exit 0; smoke **PASS**, exit 0.

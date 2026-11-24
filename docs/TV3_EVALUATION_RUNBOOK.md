@@ -51,4 +51,37 @@ Bootstrap trong `src/bootstrap.py` dùng cùng mẫu câu có hoàn lại cho m�
 gom token rồi tính chênh lệch accuracy và lấy phân vị 2,5% và 97,5% trên 2.000
 lần lấy mẫu với seed 42. Ba chênh lệch đã định nghĩa là Bigram tốt nhất trừ
 baseline, Trigram tốt nhất trừ Bigram tốt nhất, và Trigram cố định trừ Bigram
-cố định. Việc chạy đánh giá cuối theo cấu hình đã khóa nằm ở quy trình tích hợp.
+cố định. Lần chạy chính thức dùng [biên bản khóa](pre_register_test.md).
+
+## Đối chiếu kết quả Test
+
+Test có 800 câu, 11.692 token và 1.747 token OOV (14,94%). Ma trận nhầm lẫn và
+bảng theo nhãn của cả năm vai trò dùng cùng tập gold, đủ 17 UPOS.
+[Bảng chỉ số đầy đủ](../results/tables/test/metrics_test.csv) · [Metadata](../results/tables/test/run_metadata.json)
+
+| Cấu hình | Accuracy | Macro-F1 | OOV Accuracy | Accuracy bỏ PUNCT |
+| --- | ---: | ---: | ---: | ---: |
+| B0 | 81,79% | 71,74% | 34,29% | 78,69% |
+| Bigram best | 81,72% | 71,11% | 38,47% | 78,67% |
+| Trigram best | 81,73% | 69,19% | 42,47% | 78,66% |
+| Bigram fixed | 81,54% | 70,30% | 38,12% | 78,44% |
+| Trigram fixed | 81,73% | 69,19% | 42,47% | 78,66% |
+
+| Chênh lệch Accuracy | Ước lượng (điểm %) | CI 95% (điểm %) |
+| --- | ---: | ---: |
+| Bigram best − B0 | −0,068 | [−0,652; +0,531] |
+| Trigram best − Bigram best | +0,009 | [−0,511; +0,511] |
+| Trigram fixed − Bigram fixed | +0,188 | [−0,330; +0,687] |
+
+Cả ba CI chứa 0. Trigram best đúng thêm 70 token OOV so với Bigram best
+(742 so với 672) và đúng ít hơn 69 token đã thấy trong train (8.814 so với
+8.883). Hai thay đổi gần như triệt tiêu ở Accuracy chung. B0 có Macro-F1 cao nhất
+trong các cấu hình này. Khi bỏ PUNCT, Accuracy của B0 và hai HMM best nằm trong
+khoảng 78,66–78,69%. [CI gốc](../results/tables/test/paired_bootstrap_test.csv)
+
+Kiểm tra mô tả bằng chuỗi nhãn gold cho thấy 21/12.492 chuyển tiếp Bigram
+và 359/12.492 chuyển tiếp Trigram trên Test chưa từng xuất hiện trong train,
+tính cả EOS. Với Trigram, 21 bước có cả lịch sử hai nhãn chưa từng thấy, khi đó
+Add-α cho xác suất đều trên các nhãn đích và EOS. Đây là thống kê mô tả độ thưa
+trên chuỗi gold. Cần truy vết riêng trên đường giải mã để gắn một lỗi cụ thể
+với lịch sử của decoder. [Audit dữ liệu và lỗi](TV1_DATA.md)

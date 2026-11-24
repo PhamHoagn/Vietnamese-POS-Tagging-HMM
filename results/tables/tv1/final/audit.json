@@ -1,0 +1,63 @@
+{
+  "repository": "https://github.com/UniversalDependencies/UD_Vietnamese-VTB",
+  "commit": "fa7130860b65db9db342542c51dc57badd30fa9e",
+  "scope": [
+    "train",
+    "dev",
+    "test"
+  ],
+  "lock_sha256": "09274b26580ad5999913b5c4520d8a5af686665fa8f8e55bba48816709f5f0e0",
+  "run_metadata_sha256": "96a3b8ea001a14ea50b4d486aefb2a6cc6e91a8396a6b9ed248946c8925487ca",
+  "test_predictions_sha256": "91d6cd3e418d63d865d119c93898666ba81262f6654db61086e49e3360bb4564",
+  "train": {
+    "filename": "vi_vtb-ud-train.conllu",
+    "source": "https://raw.githubusercontent.com/UniversalDependencies/UD_Vietnamese-VTB/fa7130860b65db9db342542c51dc57badd30fa9e/vi_vtb-ud-train.conllu",
+    "sha256": "1df180722db99b724f7368aca50597133bee28606de3394cd8d12a57da89978d",
+    "bytes": 946835,
+    "sentences": 1400,
+    "word_rows": 20215,
+    "multiword_rows_skipped": 0,
+    "empty_node_rows_skipped": 0,
+    "metadata_only_blocks": 0,
+    "missing_sentence_ids": 0,
+    "repeated_sentence_ids": 0,
+    "non_nfc_tokens": 0
+  },
+  "dev": {
+    "filename": "vi_vtb-ud-dev.conllu",
+    "source": "https://raw.githubusercontent.com/UniversalDependencies/UD_Vietnamese-VTB/fa7130860b65db9db342542c51dc57badd30fa9e/vi_vtb-ud-dev.conllu",
+    "sha256": "0b779257b9225575b3b30e15d64cc4ef9945a77f8cceb9f92d794b483a2752dd",
+    "bytes": 1232268,
+    "sentences": 1123,
+    "word_rows": 26162,
+    "multiword_rows_skipped": 0,
+    "empty_node_rows_skipped": 0,
+    "metadata_only_blocks": 0,
+    "missing_sentence_ids": 0,
+    "repeated_sentence_ids": 0,
+    "non_nfc_tokens": 0
+  },
+  "test": {
+    "filename": "vi_vtb-ud-test.conllu",
+    "source": "https://raw.githubusercontent.com/UniversalDependencies/UD_Vietnamese-VTB/fa7130860b65db9db342542c51dc57badd30fa9e/vi_vtb-ud-test.conllu",
+    "sha256": "abc1b0ea98661bbb494a8c0da123ba2fe1a3ef71322c380fe66468884d9b4285",
+    "git_blob_sha1": "29cfccf7bc782829f77d039db5d906157a747ae6",
+    "bytes": 538633,
+    "sentences": 800,
+    "word_rows": 11692,
+    "multiword_rows_skipped": 0,
+    "empty_node_rows_skipped": 0,
+    "metadata_only_blocks": 0,
+    "missing_sentence_ids": 0,
+    "repeated_sentence_ids": 0,
+    "non_nfc_tokens": 0
+  },
+  "duplicate_pairs": {
+    "train/train": 48,
+    "dev/dev": 2,
+    "test/test": 21,
+    "train/dev": 2,
+    "train/test": 70
+  },
+  "test_error_pairs_sha256": "1d9dfd85946fb3ce14eee392427c11758c97f8e8ff0d5d31ccbe20f608e671d5"
+}

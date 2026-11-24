@@ -1,6 +1,6 @@
-# Dữ liệu và phân tích dev của TV1
+# Dữ liệu và phân tích lỗi của TV1
 
-Các bảng và hình được tạo từ UD Vietnamese-VTB tại commit `fa7130860b65db9db342542c51dc57badd30fa9e`. Corpus mang giấy phép CC BY-SA 4.0. Pipeline giữ nguyên FORM, phân biệt hoa thường, giữ khoảng trắng trong token và dùng nhãn UPOS từ CoNLL-U. Bản kê ghi URL, kích thước và SHA-256 đã kiểm tra của train/dev. Mục test chỉ ghi metadata Git của tệp đã ghim để đối chiếu sau khi khóa thí nghiệm. [Nguồn dữ liệu](https://github.com/UniversalDependencies/UD_Vietnamese-VTB/tree/fa7130860b65db9db342542c51dc57badd30fa9e), [giấy phép](https://github.com/UniversalDependencies/UD_Vietnamese-VTB/blob/fa7130860b65db9db342542c51dc57badd30fa9e/LICENSE.txt), [bản kê audit](../results/tables/tv1/audit.json).
+Các bảng và hình được tạo từ UD Vietnamese-VTB tại commit `fa7130860b65db9db342542c51dc57badd30fa9e`. Corpus mang giấy phép CC BY-SA 4.0. Pipeline giữ nguyên FORM, phân biệt hoa thường, giữ khoảng trắng trong token và dùng nhãn UPOS từ CoNLL-U. Bản kê train/dev ghi URL, kích thước và SHA-256 đã kiểm tra của hai tập này cùng metadata Git của test tại thời điểm chuẩn bị. Bản kê sau khóa liên kết dữ liệu test với lần đánh giá chính thức qua SHA-256. [Nguồn dữ liệu](https://github.com/UniversalDependencies/UD_Vietnamese-VTB/tree/fa7130860b65db9db342542c51dc57badd30fa9e), [giấy phép](https://github.com/UniversalDependencies/UD_Vietnamese-VTB/blob/fa7130860b65db9db342542c51dc57badd30fa9e/LICENSE.txt), [bản kê train/dev](../results/tables/tv1/audit.json), [bản kê sau khóa](../results/tables/tv1/final/audit.json).
 
 ## Chạy lại
 
@@ -64,3 +64,26 @@ So sánh B0 với H1_best (`α=0,01`, `k=1`) và H2_best (`α=0,1`, `k=1`). CSV 
 | `dev-2 / 6` | NOUN | NOUN | NOUN | VERB | Không | Viết tắt chỉ địa danh theo nhãn vàng của corpus, FORM đã thấy trong train. Đây là ca H2 sai dù có từ vựng, cần xem cùng các chuyển tiếp quanh vị trí đó. |
 
 Các diễn giải mô tả vai trò cú pháp được quan sát trong ngữ cảnh. Để quy một lỗi cụ thể cho emission hoặc chuyển tiếp, cần xem thêm điểm của các đường Viterbi cạnh tranh.
+
+## Kiểm tra test sau khi khóa
+
+Test chính thức có **800 câu, 11.692 token, 2.475 FORM khác nhau**. Độ dài câu trung bình là 14,62 token, trung vị 15 và tối đa 25. Có 1.703 token PUNCT và **1.747 token OOV (14,94%)** theo từ vựng train trước cutoff. Số hàng token gốc khớp số hàng đã parse và toàn bộ dự đoán khớp đúng ID câu, vị trí token, FORM và nhãn vàng. Test có đủ ID câu riêng biệt và tất cả FORM đều ở dạng NFC trong bản nguồn. [Bản kê test](../results/tables/tv1/final/audit.json), [thống kê ba tập](../results/tables/tv1/final/eda.csv), [OOV theo nhãn](../results/tables/tv1/final/oov_stats.csv).
+
+So chuỗi FORM cho thấy 21 cặp trùng trong test, 70 cặp khớp train/test và 0 cặp khớp dev/test. Nhiều vị trí train cùng khớp một vị trí test. Có 7 trong 800 vị trí câu test trùng train, tương ứng 42 trong 11.692 token test (0,36%). Cả 70 cặp train/test có cùng chuỗi nhãn vàng. Đây là phần chồng lặp cần lưu ý khi diễn giải kết quả trên split chuẩn. [Chỉ mục câu trùng](../results/tables/tv1/final/duplicates.csv), [độ dài câu](../results/figures/tv1/final/sentence_lengths.png), [phân bố UPOS](../results/figures/tv1/final/upos_distribution.png), [OOV theo UPOS](../results/figures/tv1/final/oov_by_upos.png).
+
+## Phân tích 10 vị trí trên test
+
+B0 sai 2.129 token, H1_best sai 2.137 và H2_best sai 2.136. Tổng 6.402 lỗi được đếm theo cặp mô hình và token. Ví dụ lấy từ các nhóm nhầm phổ biến trong kết quả đã khóa, nên một số vị trí cùng nằm trong một câu. Với token OOV ngoài PUNCT, cả ba mô hình đều có lỗi `VERB → NOUN` và `PROPN → NOUN`. Lỗi `NOUN → VERB` cũng xuất hiện ở hai HMM. [Bảng nhầm tổng hợp](../results/tables/tv1/final/test_error_pairs.csv), [chỉ số test chính thức](../results/tables/test/metrics_test.csv).
+
+| Vị trí test (chỉ số từ 0) | Gold | B0 | H1 | H2 | OOV | Giải thích theo ngữ cảnh |
+| --- | --- | --- | --- | --- | --- | --- |
+| `text-s1 / 11` | VERB | NOUN | ADJ | VERB | Có | Vị trí này diễn tả trạng thái được người nói cảm nhận ở người đối diện. H1 đi theo nghĩa miêu tả và gán ADJ, còn H2 khớp cách gán VERB của corpus. |
+| `text-s13 / 0` | PROPN | NOUN | NOUN | NOUN | Có | Tên địa điểm mở đầu một danh sách, có dấu phẩy theo sau. Cả ba mô hình gán danh từ chung cho tên ở vị trí đầu câu. |
+| `text-s5 / 7` | ADJ | NOUN | NOUN | VERB | Có | Thành phần sau động từ đọc biểu thị cách thức và đứng trước các đối tượng được đọc. Nhãn vàng xếp thành phần này vào ADJ. |
+| `text-s18 / 8` | VERB | NOUN | NOUN | VERB | Có | Động từ mô tả hành động xếp đồ, nối danh sách vật ở trước với phần chỉ chiều cao ở sau. H2 khớp nhãn vàng tại ranh giới này. |
+| `text-s13 / 2` | PROPN | NOUN | NOUN | NOUN | Có | Tên địa điểm thứ hai nằm giữa hai dấu phẩy trong cùng danh sách. Cả ba mô hình lặp lại lỗi PROPN thành NOUN. |
+| `text-s13 / 21` | PROPN | NOUN | NOUN | NOUN | Có | Tên địa danh chỉ điểm đến, theo sau cụm chỉ hướng dịch chuyển. Cả ba mô hình nhận từ này là danh từ chung. |
+| `text-s9 / 13` | VERB | NOUN | VERB | NOUN | Có | Vị trí chỉ trạng thái của hoạt động vận chuyển và được nối với một mô tả khác. H1 khớp nhãn VERB theo corpus. |
+| `text-s8 / 13` | NOUN | NOUN | VERB | NOUN | Có | Cụm chỉ một nhóm biểu diễn, đứng sau yếu tố dẫn vào đối tượng đi kèm. H1 gán VERB cho vị trí có chức năng danh từ. |
+| `text-s5 / 4` | NOUN | NOUN | NOUN | VERB | Có | Danh từ chỉ vật mang thông tin, làm đối tượng của hành động ngay trước đó. H2 gán VERB dù động từ kế tiếp của câu nằm ở vị trí khác. |
+| `text-s10 / 6` | VERB | VERB | NOUN | NOUN | Không | Động từ chỉ phát tiếng, đặt sau từ nối chỉ trình tự hành động. B0 nhận đúng FORM đã thấy trong train, còn cả hai HMM gán NOUN trong chuỗi này. |

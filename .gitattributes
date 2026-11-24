@@ -1,4 +1,4 @@
 # Keep the exact bytes recorded in the locked Test run and TV1 audit.
-results/tables/test/*.csv -text
+results/tables/test/*.csv -text whitespace=cr-at-eol
 results/tables/test/run_metadata.json -text
-results/tables/tv1/final/test_error_pairs.csv -text
+results/tables/tv1/final/test_error_pairs.csv -text whitespace=cr-at-eol

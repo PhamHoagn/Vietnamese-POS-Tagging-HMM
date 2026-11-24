@@ -188,5 +188,5 @@ Smoke chỉ kiểm tra baseline/integration, còn kiểm thử Bigram nằm tron
   dự trù cho 9 cấu hình nằm trong [tài liệu Trigram](TV2_TRIGRAM.md).
 - Metric, tie-break, lưới dev và bootstrap đã đồng bộ với kế hoạch v4.1.
   [Quy trình đánh giá](TV3_EVALUATION_RUNBOOK.md)
-- Notebook đã chạy với kernel Jupyter sạch trên Windows. Test chính thức
-  chờ xác nhận khóa. [Biên bản](pre_register_test.md)
+- Notebook đã chạy với kernel Jupyter sạch trên Windows. Test chính thức đã
+  chạy với cấu hình được khóa trước. [Biên bản](pre_register_test.md)
