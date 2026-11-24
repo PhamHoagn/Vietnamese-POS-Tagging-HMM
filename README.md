@@ -18,18 +18,11 @@ python -m venv .venv
 
 ## Chạy trên Google Colab CPU
 
-Mở [NLP_POS.ipynb](notebooks/NLP_POS.ipynb) trong bản checkout chứa toàn bộ dự án.
-Notebook chạy từ thư mục gốc repo và dùng CPU. Trên Colab, có thể tải bản ZIP của
-checkout hoặc clone nhánh chứa thay đổi sau khi nhóm đưa nhánh đó lên remote.
-
-```python
-!python -m pip install -r requirements.txt
-!python -m pytest -q
-!python -m scripts.smoke_test
-```
-
-Trong Colab, giải nén hoặc clone rồi `%cd` vào thư mục chứa `requirements.txt`.
-Notebook import bằng `from src...` và các script chạy bằng `python -m`.
+[Mở notebook POS Tagging trên Google Colab](https://colab.research.google.com/github/PhamHoagn/Vietnamese-POS-Tagging-HMM/blob/main/notebooks/NLP_POS.ipynb).
+Kết nối với runtime CPU và chạy hai ô mã đầu để mở demo trong notebook. Ô đầu
+tự tải mã nguồn và cài thư viện. Ô thứ hai tải train/dev, kiểm tra mã băm và
+mở giao diện nhập câu. Chọn **Runtime → Run all** để chạy cả thí nghiệm dev,
+xem biểu đồ và các bảng Test đã khóa.
 
 Smoke test chỉ dùng fixture tự tạo trong `tests/fixtures/tiny.conllu` với toy
 train/dev; số in ra dùng để kiểm tra kết nối, không phải kết quả thực nghiệm.
